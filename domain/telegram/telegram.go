@@ -3,21 +3,22 @@ package telegram
 import (
 	"github.com/chazari-x/hmtpk_schedule/config"
 	"github.com/chazari-x/hmtpk_schedule/domain/telegram/logger"
-	"github.com/chazari-x/hmtpk_schedule/domain/telegram/logics"
-	"github.com/chazari-x/hmtpk_schedule/redis/redis"
+	"github.com/chazari-x/hmtpk_schedule/domain/telegram/logic"
+	"github.com/chazari-x/hmtpk_schedule/redis"
 	"github.com/chazari-x/hmtpk_schedule/schedule"
+	"github.com/chazari-x/hmtpk_schedule/storage"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-func Start(cfg *config.Telegram, _ *redis.Redis, schedule *schedule.Schedule) error {
+func Start(cfg *config.Telegram, redis *redis.Redis, schedule *schedule.Schedule, storage *storage.Storage) error {
 	bot, err := tgbotapi.NewBotAPI(cfg.Token)
 	if err != nil {
 		return err
 	}
-
-	//bot.Debug = true
-	log.Infof("Авторизован как %s", bot.Self.UserName)
 
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 60
@@ -28,28 +29,32 @@ func Start(cfg *config.Telegram, _ *redis.Redis, schedule *schedule.Schedule) er
 		return err
 	}
 
-	l := logger.NewLogger(cfg, bot)
-	logic := logics.NewLogic(cfg, schedule)
+	newLogger := logger.NewLogger(cfg, bot)
+	newLogic := logic.NewLogic(cfg, schedule, bot, newLogger, storage, redis)
 
-	for update := range updates {
-		if update.Message == nil {
-			continue
+	go func() {
+		for update := range updates {
+			if update.Message == nil {
+				if update.CallbackQuery != nil {
+					newLogic.UpdateMessage(update.CallbackQuery)
+				}
+				continue
+			}
+
+			log.Infof("[%s: %d - %d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Chat.ID, update.Message.Text)
+
+			if err := storage.InsertChat(int(update.Message.Chat.ID)); err != nil {
+				log.Error(err)
+			}
+
+			newLogic.SendAnswer(update.Message)
 		}
+	}()
 
-		log.Tracef("[%s - %d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
-
-		answer, err := logic.GetMessage(update.Message)
-		if err != nil {
-			log.Error(err)
-			l.Error(err)
-		}
-
-		_, err = bot.Send(answer)
-		if err != nil {
-			log.Error(err)
-			l.Error(err)
-		}
-	}
+	log.Infof("Press CTRL-C to exit. Авторизован как %s.", bot.Self.UserName)
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	<-sc
 
 	return nil
 }

@@ -17,12 +17,14 @@ func NewLogger(cfg *config.Telegram, bot *tgbotapi.BotAPI) *Logger {
 
 func (l *Logger) Message(message string) {
 	msg := tgbotapi.NewMessage(l.cfg.Support.ID, message)
-	_, err := l.bot.Send(msg)
-	log.Error(err)
+	if _, err := l.bot.Send(msg); err != nil {
+		log.Error(err)
+	}
 }
 
 func (l *Logger) Error(error error) {
 	msg := tgbotapi.NewMessage(l.cfg.Support.ID, error.Error())
-	_, err := l.bot.Send(msg)
-	log.Error(err)
+	if _, err := l.bot.Send(msg); err != nil {
+		log.Error(err)
+	}
 }

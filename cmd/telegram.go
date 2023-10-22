@@ -4,7 +4,7 @@ import (
 	"github.com/chazari-x/hmtpk_schedule/domain/telegram"
 	"github.com/chazari-x/hmtpk_schedule/redis"
 	"github.com/chazari-x/hmtpk_schedule/schedule"
-	"github.com/chazari-x/hmtpk_schedule/selenium"
+	"github.com/chazari-x/hmtpk_schedule/storage"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +24,7 @@ func init() {
 			log.Trace("telegram starting..")
 			defer log.Trace("telegram stopped")
 
-			r, err := redis.Redis(&cfg.Redis)
+			newRedis, err := redis.NewRedis(&cfg.Redis)
 			if err != nil {
 				log.Error(err)
 				if !cfg.Log.Dev {
@@ -32,15 +32,15 @@ func init() {
 				}
 			}
 
-			newSelenium, s, err := selenium.NewSelenium()
+			newStorage, db, err := storage.NewStorage(&cfg.DB, cmd.Context())
 			if err != nil {
-				log.Error(err)
 				return
 			}
+			defer func() {
+				_ = db.Close()
+			}()
 
-			defer s.Quit()
-
-			if err = telegram.Start(&cfg.Telegram, r, schedule.NewSchedule(&cfg.Schedule, r, newSelenium)); err != nil {
+			if err = telegram.Start(&cfg.Telegram, newRedis, schedule.NewSchedule(&cfg.Schedule, newRedis), newStorage); err != nil {
 				log.Error(err)
 				return
 			}
