@@ -378,7 +378,7 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, date string) tgbotapi.M
 
 	for _, sch := range schs {
 		if strings.Contains(sch.Date, date) {
-			msg.Text += fmt.Sprintf("\n%s", sch.Date)
+			msg.Text += fmt.Sprintf("Группа: %s\n%s", group, sch.Date)
 
 			if len(sch.Lessons) == 0 {
 				msg.Text += "\nРасписания нет"
@@ -439,7 +439,7 @@ func (l *Logic) getGroupSchedule(message *tgbotapi.Message, date string) tgbotap
 
 	for _, sch := range schs {
 		if strings.Contains(sch.Date, date) {
-			msg.Text += fmt.Sprintf("\n%s", sch.Date)
+			msg.Text += fmt.Sprintf("Группа: %s\n%s", group, sch.Date)
 
 			if len(sch.Lessons) == 0 {
 				msg.Text += "\nРасписания нет"
@@ -500,7 +500,7 @@ func (l *Logic) getTeacherSchedule(message *tgbotapi.Message, date string) tgbot
 
 	for _, sch := range schs {
 		if strings.Contains(sch.Date, date) {
-			msg.Text += fmt.Sprintf("\n%s", sch.Date)
+			msg.Text += fmt.Sprintf("Преподаватель: %s\n%s", teacher, sch.Date)
 
 			if len(sch.Lessons) == 0 {
 				msg.Text += "\nРасписания нет"
