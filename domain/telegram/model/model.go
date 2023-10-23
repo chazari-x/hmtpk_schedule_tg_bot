@@ -81,13 +81,15 @@ type Button string
 
 const (
 	Home            string = "Перейти в главное меню"
-	Support         string = "Служба поддержки"
-	Settings        string = "Настройки"
 	MySchedule      string = "Мое расписание"
-	ChangeMyGroup   string = "Изменить мою группу"
 	OtherSchedule   string = "Другое расписание"
 	GroupSchedule   string = /*"👩‍🎓" + */ "Группы"        /* + "👨‍🎓"*/
 	TeacherSchedule string = /*"👩‍🏫" + */ "Преподаватели" /*+ "👨‍🏫"*/
+	OtherButtons    string = "Другие кнопки"
+	Support         string = "Служба поддержки"
+	Settings        string = "Настройки"
+	ChangeMyGroup   string = "Изменить мою группу"
+	Statistics      string = "Статистика"
 )
 
 func (b Button) Value() string {
@@ -115,17 +117,21 @@ func (b Button) Value() string {
 С наилучшими пожеланиями,
 Команда разработчиков.`
 	case Button(MySchedule):
-		return ""
+		return "-"
 	case Button(Settings):
 		return "Ваши настройки."
 	case Button(ChangeMyGroup):
 		return "Пожалуйста, выберите или введите полный номер группы."
 	case Button(OtherSchedule):
-		return "Выберите расписание"
+		return "Выберите расписание."
 	case Button(GroupSchedule):
 		return "Пожалуйста, выберите или введите полный номер группы."
 	case Button(TeacherSchedule):
 		return "Пожалуйста, выберите или введите ФИО преподавателя."
+	case Button(OtherButtons):
+		return "Показаны остальные кнопки."
+	case Button(Statistics):
+		return "Статистика использования бота:\n\nза день: %d пользователя\n\nза месяц: %d пользователя"
 	default:
 		return "-"
 	}

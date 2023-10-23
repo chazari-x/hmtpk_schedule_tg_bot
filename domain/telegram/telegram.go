@@ -43,7 +43,7 @@ func Start(cfg *config.Telegram, redis *redis.Redis, schedule *schedule.Schedule
 
 			log.Infof("[%s: %d - %d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Chat.ID, update.Message.Text)
 
-			if err := storage.InsertChat(int(update.Message.Chat.ID)); err != nil {
+			if err := storage.InsertChat(int(update.Message.From.ID)); err != nil {
 				log.Error(err)
 			}
 

@@ -38,13 +38,13 @@ func (l *Logic) UpdateMessage(callbackQuery *tgbotapi.CallbackQuery) {
 		teacher := data[1]
 
 		buttons = tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(Monday.String(), TeacherSchCode(1).Code(teacher)),
-			tgbotapi.NewInlineKeyboardButtonData(Tuesday.String(), TeacherSchCode(2).Code(teacher)),
-			tgbotapi.NewInlineKeyboardButtonData(Wednesday.String(), TeacherSchCode(3).Code(teacher)),
-			tgbotapi.NewInlineKeyboardButtonData(Thursday.String(), TeacherSchCode(4).Code(teacher)),
-			tgbotapi.NewInlineKeyboardButtonData(Friday.String(), TeacherSchCode(5).Code(teacher)),
-			tgbotapi.NewInlineKeyboardButtonData(Saturday.String(), TeacherSchCode(6).Code(teacher)),
-			tgbotapi.NewInlineKeyboardButtonData(Sunday.String(), TeacherSchCode(0).Code(teacher)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(1).String(), TeacherSchCode(1).Code(teacher)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(2).String(), TeacherSchCode(2).Code(teacher)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(3).String(), TeacherSchCode(3).Code(teacher)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(4).String(), TeacherSchCode(4).Code(teacher)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(5).String(), TeacherSchCode(5).Code(teacher)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(6).String(), TeacherSchCode(6).Code(teacher)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(0).String(), TeacherSchCode(0).Code(teacher)),
 		))
 
 		day = data[0]
@@ -55,13 +55,13 @@ func (l *Logic) UpdateMessage(callbackQuery *tgbotapi.CallbackQuery) {
 		group := data[1]
 
 		buttons = tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(Monday.String(), GroupSchCode(1).Code(group)),
-			tgbotapi.NewInlineKeyboardButtonData(Tuesday.String(), GroupSchCode(2).Code(group)),
-			tgbotapi.NewInlineKeyboardButtonData(Wednesday.String(), GroupSchCode(3).Code(group)),
-			tgbotapi.NewInlineKeyboardButtonData(Thursday.String(), GroupSchCode(4).Code(group)),
-			tgbotapi.NewInlineKeyboardButtonData(Friday.String(), GroupSchCode(5).Code(group)),
-			tgbotapi.NewInlineKeyboardButtonData(Saturday.String(), GroupSchCode(6).Code(group)),
-			tgbotapi.NewInlineKeyboardButtonData(Sunday.String(), GroupSchCode(0).Code(group)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(1).String(), GroupSchCode(1).Code(group)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(2).String(), GroupSchCode(2).Code(group)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(3).String(), GroupSchCode(3).Code(group)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(4).String(), GroupSchCode(4).Code(group)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(5).String(), GroupSchCode(5).Code(group)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(6).String(), GroupSchCode(6).Code(group)),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(0).String(), GroupSchCode(0).Code(group)),
 		))
 
 		day = data[0]
@@ -69,13 +69,13 @@ func (l *Logic) UpdateMessage(callbackQuery *tgbotapi.CallbackQuery) {
 		sch = l.getGroupSchedule(callbackQuery.Message, day)
 	} else if strings.Contains(callbackQuery.Data, MyScheduleCode) {
 		buttons = tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(Monday.String(), MySchCode(1).Code()),
-			tgbotapi.NewInlineKeyboardButtonData(Tuesday.String(), MySchCode(2).Code()),
-			tgbotapi.NewInlineKeyboardButtonData(Wednesday.String(), MySchCode(3).Code()),
-			tgbotapi.NewInlineKeyboardButtonData(Thursday.String(), MySchCode(4).Code()),
-			tgbotapi.NewInlineKeyboardButtonData(Friday.String(), MySchCode(5).Code()),
-			tgbotapi.NewInlineKeyboardButtonData(Saturday.String(), MySchCode(6).Code()),
-			tgbotapi.NewInlineKeyboardButtonData(Sunday.String(), MySchCode(0).Code()),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(1).String(), MySchCode(1).Code()),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(2).String(), MySchCode(2).Code()),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(3).String(), MySchCode(3).Code()),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(4).String(), MySchCode(4).Code()),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(5).String(), MySchCode(5).Code()),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(6).String(), MySchCode(6).Code()),
+			tgbotapi.NewInlineKeyboardButtonData(Weekday(0).String(), MySchCode(0).Code()),
 		))
 
 		day = strings.ReplaceAll(callbackQuery.Data, MyScheduleCode, "")
@@ -118,7 +118,9 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 
 	get, e := l.redis.Get(fmt.Sprintf("chat-%d", message.Chat.ID))
 	if e != nil {
-		log.Error(e)
+		if !strings.Contains(e.Error(), "redis: nil") {
+			log.Error(e)
+		}
 	}
 
 	log.Trace(get)
@@ -135,6 +137,11 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
 		default:
+			if strings.Contains(message.Text, GroupSchedule) {
+				buttons = message.Text
+				msg = tgbotapi.NewMessage(message.Chat.ID, Button(GroupSchedule).Value())
+				break
+			}
 			id = message.Text
 			buttons = GroupSchCode(7).Code(id)
 			msg = l.getGroupSchedule(message, "")
@@ -148,6 +155,11 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
 		default:
+			if strings.Contains(message.Text, TeacherSchedule) {
+				buttons = message.Text
+				msg = tgbotapi.NewMessage(message.Chat.ID, Button(TeacherSchedule).Value())
+				break
+			}
 			id = message.Text
 			buttons = TeacherSchCode(7).Code(id)
 			msg = l.getTeacherSchedule(message, "")
@@ -162,10 +174,20 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
 		default:
 			if message.Text != "" {
+				if strings.Contains(message.Text, ChangeMyGroup) {
+					buttons = message.Text
+					msg = tgbotapi.NewMessage(message.Chat.ID, Button(ChangeMyGroup).Value())
+					break
+				}
+
 				group := l.schedule.GetGroup(message.Text)
 				if group != "" {
 					err := l.storage.ChangeGroupID(int(message.Chat.ID), group)
 					if err == nil {
+						buttons = Home
+						if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
+							log.Error(err)
+						}
 						msg = tgbotapi.NewMessage(message.Chat.ID, "Вы изменили свою группу.")
 						break
 					}
@@ -220,6 +242,24 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 				log.Error(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(ChangeMyGroup).Value())
+		case OtherButtons:
+			buttons = message.Text
+			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
+				log.Error(err)
+			}
+			msg = tgbotapi.NewMessage(message.Chat.ID, Button(OtherButtons).Value())
+		case Statistics:
+			buttons = message.Text
+			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
+				log.Error(err)
+			}
+			day, month, err := l.storage.GetActiveChats()
+			if err != nil {
+				log.Error(err)
+				msg = tgbotapi.NewMessage(message.Chat.ID, "Произошла ошибка при получении статистики.")
+				break
+			}
+			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Button(Statistics).Value(), day, month))
 		default:
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
 				log.Error(err)
@@ -240,36 +280,6 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 func (l *Logic) getButtons(list, id string) interface{} {
 	var replyMarkup tgbotapi.ReplyKeyboardMarkup
 	switch list {
-	case ChangeMyGroup:
-		var keyboard [][]tgbotapi.KeyboardButton
-		keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
-
-		groups := l.schedule.GetGroups()
-		for i := 100; i < len(groups) && i < 150; i++ {
-			keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(groups[i])))
-		}
-
-		replyMarkup = tgbotapi.NewReplyKeyboard(keyboard...)
-	case GroupSchedule:
-		var keyboard [][]tgbotapi.KeyboardButton
-		keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
-
-		groups := l.schedule.GetGroups()
-		for i := 100; i < len(groups) && i < 150; i++ {
-			keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(groups[i])))
-		}
-
-		replyMarkup = tgbotapi.NewReplyKeyboard(keyboard...)
-	case TeacherSchedule:
-		var keyboard [][]tgbotapi.KeyboardButton
-		keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
-
-		teachers := l.schedule.GetTeachers()
-		for i := 100; i < len(teachers) && i < 150; i++ {
-			keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(teachers[i])))
-		}
-
-		replyMarkup = tgbotapi.NewReplyKeyboard(keyboard...)
 	case Settings:
 		replyMarkup = tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
@@ -321,13 +331,10 @@ func (l *Logic) getButtons(list, id string) interface{} {
 			tgbotapi.NewInlineKeyboardButtonData(Saturday.String(), TeacherSchCode(6).Code(id)),
 			tgbotapi.NewInlineKeyboardButtonData(Sunday.String(), TeacherSchCode(0).Code(id)),
 		))
-	default:
+	case OtherButtons:
 		replyMarkup = tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(MySchedule),
-			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(OtherSchedule),
+				tgbotapi.NewKeyboardButton(Home),
 			),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(Support),
@@ -335,7 +342,105 @@ func (l *Logic) getButtons(list, id string) interface{} {
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(Settings),
 			),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(Statistics),
+			),
 		)
+	default:
+		if strings.Contains(list, ChangeMyGroup) {
+			numString := strings.ReplaceAll(list, ChangeMyGroup+" ", "")
+			if numString == "" || numString == ChangeMyGroup {
+				numString = "1"
+			}
+			num, err := strconv.Atoi(numString)
+			if err != nil {
+				log.Error(err)
+			}
+
+			var keyboard [][]tgbotapi.KeyboardButton
+			keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
+
+			if num > 1 {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(ChangeMyGroup+" "+strconv.Itoa(num-1))))
+			}
+
+			groups := l.schedule.GetGroups()
+			for i := len(groups) - 50*(num-1) - 1; i >= 0 && i >= len(groups)-50*(num-1)-50 && i < len(groups); i-- {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(groups[i])))
+			}
+
+			if num*50 < len(groups) {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(ChangeMyGroup+" "+strconv.Itoa(num+1))))
+			}
+
+			replyMarkup = tgbotapi.NewReplyKeyboard(keyboard...)
+		} else if strings.Contains(list, GroupSchedule) {
+			numString := strings.ReplaceAll(list, GroupSchedule+" ", "")
+			if numString == "" || numString == GroupSchedule {
+				numString = "1"
+			}
+			num, err := strconv.Atoi(numString)
+			if err != nil {
+				log.Error(err)
+			}
+
+			var keyboard [][]tgbotapi.KeyboardButton
+			keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
+
+			if num > 1 {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(GroupSchedule+" "+strconv.Itoa(num-1))))
+			}
+
+			groups := l.schedule.GetGroups()
+			for i := len(groups) - 50*(num-1) - 1; i >= 0 && i >= len(groups)-50*(num-1)-50 && i < len(groups); i-- {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(groups[i])))
+			}
+
+			if num*50 < len(groups) {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(GroupSchedule+" "+strconv.Itoa(num+1))))
+			}
+
+			replyMarkup = tgbotapi.NewReplyKeyboard(keyboard...)
+		} else if strings.Contains(list, TeacherSchedule) {
+			numString := strings.ReplaceAll(list, TeacherSchedule+" ", "")
+			if numString == "" || numString == TeacherSchedule {
+				numString = "1"
+			}
+			num, err := strconv.Atoi(numString)
+			if err != nil {
+				log.Error(err)
+			}
+
+			var keyboard [][]tgbotapi.KeyboardButton
+			keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
+
+			if num > 1 {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(TeacherSchedule+" "+strconv.Itoa(num-1))))
+			}
+
+			teachers := l.schedule.GetTeachers()
+			for i := len(teachers) - 50*(num-1) - 1; i >= 0 && i >= len(teachers)-50*(num-1)-50 && i < len(teachers); i-- {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(teachers[i])))
+			}
+
+			if num*50 < len(teachers) {
+				keyboard = append(keyboard, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(TeacherSchedule+" "+strconv.Itoa(num+1))))
+			}
+
+			replyMarkup = tgbotapi.NewReplyKeyboard(keyboard...)
+		} else {
+			replyMarkup = tgbotapi.NewReplyKeyboard(
+				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(MySchedule),
+				),
+				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(OtherSchedule),
+				),
+				tgbotapi.NewKeyboardButtonRow(
+					tgbotapi.NewKeyboardButton(OtherButtons),
+				),
+			)
+		}
 	}
 
 	replyMarkup.ResizeKeyboard = true
@@ -350,7 +455,7 @@ func getDay(day time.Weekday) string {
 func (l *Logic) getMySchedule(message *tgbotapi.Message, date string) tgbotapi.MessageConfig {
 	var msg tgbotapi.MessageConfig
 	date = strings.ToLower(date)
-	group, err := l.storage.SelectGroupID(int(message.Chat.ID))
+	group, err := l.storage.SelectGroupID(int(message.From.ID))
 	if err != nil {
 		return tgbotapi.NewMessage(message.Chat.ID, "Произошла ошибка при поиске вашей группы")
 	} else if group == "0" || group == "" {
@@ -381,7 +486,7 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, date string) tgbotapi.M
 			msg.Text += fmt.Sprintf("Группа: %s\n%s", group, sch.Date)
 
 			if len(sch.Lessons) == 0 {
-				msg.Text += "\nРасписания нет"
+				msg.Text += "\nРасписания нет (пар нет)"
 				return msg
 			}
 
@@ -391,7 +496,7 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, date string) tgbotapi.M
 				} else {
 					if lesson.Num == sch.Lessons[i-1].Num {
 						if lesson.Name != sch.Lessons[i-1].Name {
-							msg.Text += fmt.Sprintf("\nУрок - <code>%s</code>", lesson.Name)
+							msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
 						}
 					} else {
 						msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
@@ -442,7 +547,7 @@ func (l *Logic) getGroupSchedule(message *tgbotapi.Message, date string) tgbotap
 			msg.Text += fmt.Sprintf("Группа: %s\n%s", group, sch.Date)
 
 			if len(sch.Lessons) == 0 {
-				msg.Text += "\nРасписания нет"
+				msg.Text += "\nРасписания нет (пар нет)"
 				return msg
 			}
 
@@ -503,7 +608,7 @@ func (l *Logic) getTeacherSchedule(message *tgbotapi.Message, date string) tgbot
 			msg.Text += fmt.Sprintf("Преподаватель: %s\n%s", teacher, sch.Date)
 
 			if len(sch.Lessons) == 0 {
-				msg.Text += "\nРасписания нет"
+				msg.Text += "\nРасписания нет (пар нет)"
 				return msg
 			}
 
