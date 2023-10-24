@@ -119,11 +119,13 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 	get, e := l.redis.Get(fmt.Sprintf("chat-%d", message.Chat.ID))
 	if e != nil {
 		if !strings.Contains(e.Error(), "redis: nil") {
-			log.Error(e)
+			log.Errorln(e)
 		}
 	}
 
-	log.Trace(get)
+	if get != "" {
+		log.Traceln(get)
+	}
 
 	var buttons = get
 	var id string
@@ -133,7 +135,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 		case Home:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
 		default:
@@ -151,7 +153,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 		case Home:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
 		default:
@@ -169,7 +171,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 		case Home:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
 		default:
@@ -186,13 +188,13 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 					if err == nil {
 						buttons = Home
 						if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-							log.Error(err)
+							log.Errorln(err)
 						}
 						msg = tgbotapi.NewMessage(message.Chat.ID, "Вы изменили свою группу.")
 						break
 					}
 
-					log.Error(err)
+					log.Errorln(err)
 				}
 			}
 
@@ -202,67 +204,67 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 		switch message.Text {
 		case MySchedule:
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			buttons = MySchCode(7).Code()
 			msg = l.getMySchedule(message, "")
 		case OtherSchedule:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(OtherSchedule).Value())
 		case GroupSchedule:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), GroupSchedule); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(GroupSchedule).Value())
 		case TeacherSchedule:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), TeacherSchedule); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(TeacherSchedule).Value())
 		case Support:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Button(Support).Value(), l.cfg.Support.Href))
 		case Settings:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Settings).Value())
 		case ChangeMyGroup:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ChangeMyGroup); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(ChangeMyGroup).Value())
 		case OtherButtons:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(OtherButtons).Value())
 		case Statistics:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			day, month, err := l.storage.GetActiveChats()
 			if err != nil {
-				log.Error(err)
+				log.Errorln(err)
 				msg = tgbotapi.NewMessage(message.Chat.ID, "Произошла ошибка при получении статистики.")
 				break
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Button(Statistics).Value(), day, month))
 		default:
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.Chat.ID), ""); err != nil {
-				log.Error(err)
+				log.Errorln(err)
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
 		}
@@ -273,7 +275,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 
 	_, err := l.bot.Send(msg)
 	if err != nil {
-		log.Error(err)
+		log.Errorln(err)
 	}
 }
 
@@ -492,7 +494,15 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, date string) tgbotapi.M
 
 			for i, lesson := range sch.Lessons {
 				if i == 0 {
-					msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code> - <code>%s</code>\n<code>%s</code>\n<code>%s</code>\n<code>%s</code>", lesson.Num, lesson.Time, lesson.Name, lesson.Teacher, lesson.Room)
+					msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
+					msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
+					msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
+					if lesson.Room != "СРС" {
+						msg.Text += fmt.Sprintf("\n[<code>%s</code>]", lesson.Room)
+					}
+					if lesson.Teacher != "<>" {
+						msg.Text += fmt.Sprintf(" <code>%s</code>", lesson.Teacher)
+					}
 				} else {
 					if lesson.Num == sch.Lessons[i-1].Num {
 						if lesson.Name != sch.Lessons[i-1].Name {
@@ -500,11 +510,15 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, date string) tgbotapi.M
 						}
 					} else {
 						msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
-						msg.Text += fmt.Sprintf(" - <code>%s</code>", lesson.Time)
+						msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
 						msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
 					}
-					msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Teacher)
-					msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Room)
+					if lesson.Room != "СРС" {
+						msg.Text += fmt.Sprintf("\n[<code>%s</code>]", lesson.Room)
+					}
+					if lesson.Teacher != "<>" {
+						msg.Text += fmt.Sprintf(" <code>%s</code>", lesson.Teacher)
+					}
 				}
 			}
 		}
@@ -553,7 +567,15 @@ func (l *Logic) getGroupSchedule(message *tgbotapi.Message, date string) tgbotap
 
 			for i, lesson := range sch.Lessons {
 				if i == 0 {
-					msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code> - <code>%s</code>\n<code>%s</code>\n<code>%s</code>\n<code>%s</code>", lesson.Num, lesson.Time, lesson.Name, lesson.Teacher, lesson.Room)
+					msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
+					msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
+					msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
+					if lesson.Room != "СРС" {
+						msg.Text += fmt.Sprintf("\n[<code>%s</code>]", lesson.Room)
+					}
+					if lesson.Teacher != "<>" {
+						msg.Text += fmt.Sprintf(" <code>%s</code>", lesson.Teacher)
+					}
 				} else {
 					if lesson.Num == sch.Lessons[i-1].Num {
 						if lesson.Name != sch.Lessons[i-1].Name {
@@ -561,11 +583,15 @@ func (l *Logic) getGroupSchedule(message *tgbotapi.Message, date string) tgbotap
 						}
 					} else {
 						msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
-						msg.Text += fmt.Sprintf(" - <code>%s</code>", lesson.Time)
+						msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
 						msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
 					}
-					msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Teacher)
-					msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Room)
+					if lesson.Room != "СРС" {
+						msg.Text += fmt.Sprintf("\n[<code>%s</code>]", lesson.Room)
+					}
+					if lesson.Teacher != "<>" {
+						msg.Text += fmt.Sprintf(" <code>%s</code>", lesson.Teacher)
+					}
 				}
 			}
 		}
@@ -615,15 +641,14 @@ func (l *Logic) getTeacherSchedule(message *tgbotapi.Message, date string) tgbot
 			for _, lesson := range sch.Lessons {
 				msg.Text += fmt.Sprintf(`
 
-Урок: <code>%s</code> - <code>%s</code>
+Урок: <code>%s</code> [<code>%s</code>]
 <code>%s</code>
-<code>%s</code>
-<code>%s</code>`,
+[<code>%s</code>] <code>%s</code>`,
 					lesson.Num,
 					lesson.Time,
 					lesson.Name,
-					lesson.Group,
-					lesson.Room)
+					lesson.Room,
+					lesson.Group)
 			}
 		}
 	}
