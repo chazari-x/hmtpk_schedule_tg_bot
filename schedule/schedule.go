@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Schedule struct {
@@ -60,12 +61,16 @@ func (s *Schedule) GetTeachers() []string {
 	return teachers
 }
 
-func (s *Schedule) GetScheduleByGroupID(group, date string) ([]model.Schedule, error) {
+func (s *Schedule) GetScheduleByGroupID(group, date string, week int) ([]model.Schedule, error) {
 	var weeklySchedule []model.Schedule
+
+	if week == 0 {
+		_, week = time.Now().ISOWeek()
+	}
 
 	log.Trace(group)
 
-	if redisWeeklySchedule, err := s.r.Get(strconv.Itoa(Groups[group])); err == nil && redisWeeklySchedule != "" {
+	if redisWeeklySchedule, err := s.r.Get(strconv.Itoa(week) + ":" + strconv.Itoa(Groups[group])); err == nil && redisWeeklySchedule != "" {
 		if json.Unmarshal([]byte(redisWeeklySchedule), &weeklySchedule) == nil {
 			log.Trace("Данные получены из Redis")
 			return weeklySchedule, nil
@@ -142,7 +147,7 @@ func (s *Schedule) GetScheduleByGroupID(group, date string) ([]model.Schedule, e
 	//log.Trace(weeklySchedule)
 
 	if marshal, err := json.Marshal(weeklySchedule); err == nil {
-		if err := s.r.Set(strconv.Itoa(Groups[group]), string(marshal)); err != nil {
+		if err := s.r.Set(strconv.Itoa(week)+":"+strconv.Itoa(Groups[group]), string(marshal)); err != nil {
 			log.Error(err)
 		} else {
 			log.Trace("Данные сохранены в Redis")
@@ -152,12 +157,16 @@ func (s *Schedule) GetScheduleByGroupID(group, date string) ([]model.Schedule, e
 	return weeklySchedule, nil
 }
 
-func (s *Schedule) GetScheduleByTeacher(teacher, date string) ([]model.Schedule, error) {
+func (s *Schedule) GetScheduleByTeacher(teacher, date string, week int) ([]model.Schedule, error) {
 	var weeklySchedule []model.Schedule
+
+	if week == 0 {
+		_, week = time.Now().ISOWeek()
+	}
 
 	log.Trace(teacher)
 
-	if redisWeeklySchedule, err := s.r.Get(teacher); err == nil && redisWeeklySchedule != "" {
+	if redisWeeklySchedule, err := s.r.Get(strconv.Itoa(week) + ":" + teacher); err == nil && redisWeeklySchedule != "" {
 		if json.Unmarshal([]byte(redisWeeklySchedule), &weeklySchedule) == nil {
 			log.Trace("Данные получены из Redis")
 			return weeklySchedule, nil
@@ -228,7 +237,7 @@ func (s *Schedule) GetScheduleByTeacher(teacher, date string) ([]model.Schedule,
 	//log.Trace(weeklySchedule)
 
 	if marshal, err := json.Marshal(weeklySchedule); err == nil {
-		if err := s.r.Set(teacher, string(marshal)); err != nil {
+		if err := s.r.Set(strconv.Itoa(week)+":"+teacher, string(marshal)); err != nil {
 			log.Error(err)
 		} else {
 			log.Trace("Данные сохранены в Redis")

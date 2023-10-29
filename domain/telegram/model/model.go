@@ -1,80 +1,71 @@
 package model
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 type MySchCode int
 
 func (c MySchCode) Code() string {
-	switch c {
-	case 0:
-		return "0" + MyScheduleCode
-	case 1:
-		return "1" + MyScheduleCode
-	case 2:
-		return "2" + MyScheduleCode
-	case 3:
-		return "3" + MyScheduleCode
-	case 4:
-		return "4" + MyScheduleCode
-	case 5:
-		return "5" + MyScheduleCode
-	case 6:
-		return "6" + MyScheduleCode
-	default:
-		return "7" + MyScheduleCode
+	if c > 6 || c < 0 {
+		return "" + MyScheduleCode
 	}
+	return strconv.Itoa(int(c)) + MyScheduleCode
+}
+
+type MySchNextCode int
+
+func (c MySchNextCode) Code() string {
+	if c > 6 || c < 0 {
+		return "" + MyScheduleNextCode
+	}
+	return strconv.Itoa(int(c)) + MyScheduleNextCode
 }
 
 type GroupSchCode int
 
 func (c GroupSchCode) Code(group string) string {
-	switch c {
-	case 0:
-		return "0" + GroupScheduleCode + group
-	case 1:
-		return "1" + GroupScheduleCode + group
-	case 2:
-		return "2" + GroupScheduleCode + group
-	case 3:
-		return "3" + GroupScheduleCode + group
-	case 4:
-		return "4" + GroupScheduleCode + group
-	case 5:
-		return "5" + GroupScheduleCode + group
-	case 6:
-		return "6" + GroupScheduleCode + group
-	default:
-		return "7" + GroupScheduleCode + group
+	if c > 6 || c < 0 {
+		return "" + MyScheduleCode + group
 	}
+	return strconv.Itoa(int(c)) + GroupScheduleCode + group
+}
+
+type GroupSchNextCode int
+
+func (c GroupSchNextCode) Code(group string) string {
+	if c > 6 || c < 0 {
+		return "" + GroupScheduleNextCode + group
+	}
+	return strconv.Itoa(int(c)) + GroupScheduleNextCode + group
 }
 
 type TeacherSchCode int
 
 func (c TeacherSchCode) Code(teacher string) string {
-	switch c {
-	case 0:
-		return "0" + TeacherScheduleCode + teacher
-	case 1:
-		return "1" + TeacherScheduleCode + teacher
-	case 2:
-		return "2" + TeacherScheduleCode + teacher
-	case 3:
-		return "3" + TeacherScheduleCode + teacher
-	case 4:
-		return "4" + TeacherScheduleCode + teacher
-	case 5:
-		return "5" + TeacherScheduleCode + teacher
-	case 6:
-		return "6" + TeacherScheduleCode + teacher
-	default:
-		return "7" + TeacherScheduleCode + teacher
+	if c > 6 || c < 0 {
+		return "" + TeacherScheduleCode + teacher
 	}
+	return strconv.Itoa(int(c)) + TeacherScheduleCode + teacher
+}
+
+type TeacherSchNextCode int
+
+func (c TeacherSchNextCode) Code(teacher string) string {
+	if c > 6 || c < 0 {
+		return "" + TeacherScheduleNextCode + teacher
+	}
+	return strconv.Itoa(int(c)) + TeacherScheduleNextCode + teacher
 }
 
 const (
-	MyScheduleCode      = "M"
-	GroupScheduleCode   = "G"
-	TeacherScheduleCode = "T"
+	MyScheduleCode          = "M"
+	GroupScheduleCode       = "G"
+	TeacherScheduleCode     = "T"
+	MyScheduleNextCode      = "MN"
+	GroupScheduleNextCode   = "GN"
+	TeacherScheduleNextCode = "TN"
 )
 
 type Button string
@@ -139,16 +130,6 @@ func (b Button) Value() string {
 
 type Weekday int
 
-const (
-	Sunday Weekday = iota
-	Monday
-	Tuesday
-	Wednesday
-	Thursday
-	Friday
-	Saturday
-)
-
 func (d Weekday) String() string {
 	switch d {
 	case 1:
@@ -165,6 +146,27 @@ func (d Weekday) String() string {
 		return "Суббота"
 	case 0:
 		return "Воскресенье"
+	default:
+		return Weekday(time.Now().Weekday()).String()
+	}
+}
+
+func (d Weekday) ShortString() string {
+	switch d {
+	case 1:
+		return "ПН"
+	case 2:
+		return "ВТ"
+	case 3:
+		return "СР"
+	case 4:
+		return "ЧТ"
+	case 5:
+		return "ПТ"
+	case 6:
+		return "СБ"
+	case 0:
+		return "ВС"
 	default:
 		return Weekday(time.Now().Weekday()).String()
 	}
