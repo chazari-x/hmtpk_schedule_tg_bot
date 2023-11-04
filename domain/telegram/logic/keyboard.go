@@ -396,6 +396,9 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 				tgbotapi.NewKeyboardButton(Home),
 			),
 			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(Polity),
+			),
+			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(Support),
 			),
 			tgbotapi.NewKeyboardButtonRow(
