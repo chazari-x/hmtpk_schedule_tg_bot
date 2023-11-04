@@ -62,7 +62,7 @@ func (l *Logic) UpdateMessage(callbackQuery *tgbotapi.CallbackQuery) {
 	} else if strings.Contains(callbackQuery.Data, MyScheduleNextCode) {
 		day = strings.ReplaceAll(callbackQuery.Data, MyScheduleNextCode, "")
 		buttons = l.getInlineKeyboard(MyScheduleNextCode, day, "")
-		if group, err := l.storage.SelectGroupID(int(callbackQuery.Message.From.ID)); err != nil {
+		if group, err := l.storage.SelectGroupID(callbackQuery.Message.From.ID); err != nil {
 			if db, err := l.storage.Ping(); err != nil {
 				log.Errorln(err)
 			} else {
@@ -78,7 +78,7 @@ func (l *Logic) UpdateMessage(callbackQuery *tgbotapi.CallbackQuery) {
 	} else if strings.Contains(callbackQuery.Data, MyScheduleCode) {
 		day = strings.ReplaceAll(callbackQuery.Data, MyScheduleCode, "")
 		buttons = l.getInlineKeyboard(MyScheduleCode, day, "")
-		if group, err := l.storage.SelectGroupID(int(callbackQuery.Message.From.ID)); err != nil {
+		if group, err := l.storage.SelectGroupID(callbackQuery.Message.From.ID); err != nil {
 			if db, err := l.storage.Ping(); err != nil {
 				log.Errorln(err)
 			} else {
@@ -145,65 +145,65 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 	var buttons = get
 	var id string
 	switch get {
-	case GroupSchedule, GroupScheduleCmd:
+	case GroupSchedule.String(), GroupSchedule.Cmd():
 		switch message.Text {
-		case Home, HomeCmd, StartCmd:
-			buttons = Home
-			get = Home
+		case Home.String(), Start.String(), Home.Cmd(), Start.Cmd():
+			buttons = Home.String()
+			get = Home.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
+			msg = tgbotapi.NewMessage(message.Chat.ID, Home.Value())
 		default:
-			if strings.Contains(message.Text, GroupSchedule) {
+			if strings.Contains(message.Text, GroupSchedule.String()) {
 				buttons = message.Text
-				msg = tgbotapi.NewMessage(message.Chat.ID, Button(GroupSchedule).Value())
+				msg = tgbotapi.NewMessage(message.Chat.ID, GroupSchedule.Value())
 				break
 			}
 			id = message.Text
 			buttons = GroupSchCode(7).Code(id)
 			msg = l.getGroupSchedule(message, "", "", 0)
 		}
-	case TeacherSchedule, TeacherScheduleCmd:
+	case TeacherSchedule.String(), TeacherSchedule.Cmd():
 		switch message.Text {
-		case Home, HomeCmd, StartCmd:
-			buttons = Home
-			get = Home
+		case Home.String(), Start.String(), Home.Cmd(), Start.Cmd():
+			buttons = Home.String()
+			get = Home.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
+			msg = tgbotapi.NewMessage(message.Chat.ID, Home.Value())
 		default:
-			if strings.Contains(message.Text, TeacherSchedule) {
+			if strings.Contains(message.Text, TeacherSchedule.String()) {
 				buttons = message.Text
-				msg = tgbotapi.NewMessage(message.Chat.ID, Button(TeacherSchedule).Value())
+				msg = tgbotapi.NewMessage(message.Chat.ID, TeacherSchedule.Value())
 				break
 			}
 			id = message.Text
 			buttons = TeacherSchCode(7).Code(id)
 			msg = l.getTeacherSchedule(message, "", "", 0)
 		}
-	case ChangeMyGroup, ChangeMyGroupCmd:
+	case ChangeMyGroup.String(), ChangeMyGroup.Cmd():
 		switch message.Text {
-		case Home, HomeCmd, StartCmd:
-			buttons = Home
+		case Home.String(), Start.String(), Home.Cmd(), Start.Cmd():
+			buttons = Home.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
+			msg = tgbotapi.NewMessage(message.Chat.ID, Home.Value())
 		default:
 			if message.Text != "" {
-				if strings.Contains(message.Text, ChangeMyGroup) {
+				if strings.Contains(message.Text, ChangeMyGroup.String()) {
 					buttons = message.Text
-					msg = tgbotapi.NewMessage(message.Chat.ID, Button(ChangeMyGroup).Value())
+					msg = tgbotapi.NewMessage(message.Chat.ID, ChangeMyGroup.Value())
 					break
 				}
 
 				group := l.schedule.GetGroup(message.Text)
 				if group != "" {
-					err := l.storage.ChangeGroupID(int(message.From.ID), group)
+					err := l.storage.ChangeGroupID(message.From.ID, group)
 					if err == nil {
-						buttons = Home
+						buttons = Home.String()
 						if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 							log.Errorln(err)
 						}
@@ -225,17 +225,17 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 		}
 	default:
 		switch message.Text {
-		case StartCmd:
+		case Start.String():
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("%s%s", Button(StartCmd).Value(), Button(Home).Value()))
-		case MySchedule, MyScheduleCmd:
+			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("%s%s", Start.Value(), Home.Value()))
+		case MySchedule.String(), MySchedule.Cmd():
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
 			buttons = MySchCode(7).Code()
-			group, err := l.storage.SelectGroupID(int(message.From.ID))
+			group, err := l.storage.SelectGroupID(message.From.ID)
 			if err != nil {
 				if db, err := l.storage.Ping(); err != nil {
 					log.Errorln(err)
@@ -245,58 +245,58 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 
 				msg = tgbotapi.NewMessage(message.Chat.ID, "Произошла ошибка при поиске вашей группы")
 			} else if group == "0" || group == "" {
-				buttons = ChangeMyGroup
-				if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ChangeMyGroup); err != nil {
+				buttons = ChangeMyGroup.String()
+				if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ChangeMyGroup.String()); err != nil {
 					log.Errorln(err)
 				}
-				msg = tgbotapi.NewMessage(message.Chat.ID, Button(ChangeMyGroup).Value())
+				msg = tgbotapi.NewMessage(message.Chat.ID, ChangeMyGroup.Value())
 			} else {
 				msg = l.getMySchedule(message, "", "", group, 0)
 			}
-		case OtherSchedule, OtherScheduleCmd:
-			buttons = OtherSchedule
+		case OtherSchedule.String(), OtherSchedule.Cmd():
+			buttons = OtherSchedule.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(OtherSchedule).Value())
-		case GroupSchedule, GroupScheduleCmd:
-			buttons = GroupSchedule
-			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), GroupSchedule); err != nil {
+			msg = tgbotapi.NewMessage(message.Chat.ID, OtherSchedule.Value())
+		case GroupSchedule.String(), GroupSchedule.Cmd():
+			buttons = GroupSchedule.String()
+			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), GroupSchedule.String()); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(GroupSchedule).Value())
-		case TeacherSchedule, TeacherScheduleCmd:
-			buttons = TeacherSchedule
-			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), TeacherSchedule); err != nil {
+			msg = tgbotapi.NewMessage(message.Chat.ID, GroupSchedule.Value())
+		case TeacherSchedule.String(), TeacherSchedule.Cmd():
+			buttons = TeacherSchedule.String()
+			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), TeacherSchedule.String()); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(TeacherSchedule).Value())
-		case Support, SupportCmd:
-			buttons = Support
+			msg = tgbotapi.NewMessage(message.Chat.ID, TeacherSchedule.Value())
+		case Support.String(), Support.Cmd():
+			buttons = Support.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Button(Support).Value(), l.cfg.Support.Href))
-		case Settings, SettingsCmd:
-			buttons = Settings
+			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Support.Value(), l.cfg.Support.Href))
+		case Settings.String(), Settings.Cmd():
+			buttons = Settings.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Settings).Value())
-		case ChangeMyGroup, ChangeMyGroupCmd:
-			buttons = ChangeMyGroup
-			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ChangeMyGroup); err != nil {
+			msg = tgbotapi.NewMessage(message.Chat.ID, Settings.Value())
+		case ChangeMyGroup.String(), ChangeMyGroup.Cmd():
+			buttons = ChangeMyGroup.String()
+			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ChangeMyGroup.String()); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(ChangeMyGroup).Value())
-		case OtherButtons, OtherButtonsCmd:
-			buttons = OtherButtons
+			msg = tgbotapi.NewMessage(message.Chat.ID, ChangeMyGroup.Value())
+		case OtherButtons.String(), OtherButtons.Cmd():
+			buttons = OtherButtons.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(OtherButtons).Value())
-		case Statistics, StatisticsCmd:
-			buttons = Statistics
+			msg = tgbotapi.NewMessage(message.Chat.ID, OtherButtons.Value())
+		case Statistics.String(), Statistics.Cmd():
+			buttons = Statistics.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
@@ -313,18 +313,18 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 
 				break
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Button(Statistics).Value(), day, month))
-		case Polity, PolityCmd:
-			buttons = Polity
+			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Statistics.Value(), day, month))
+		case Polity.String(), Polity.Cmd():
+			buttons = Polity.String()
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Button(Polity).Value(), l.cfg.Support.Href))
+			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Polity.Value(), l.cfg.Support.Href))
 		default:
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			msg = tgbotapi.NewMessage(message.Chat.ID, Button(Home).Value())
+			msg = tgbotapi.NewMessage(message.Chat.ID, Home.Value())
 		}
 	}
 

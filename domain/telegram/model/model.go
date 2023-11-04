@@ -72,34 +72,27 @@ const (
 type Button string
 
 const (
-	StartCmd           string = "/start"
-	Home               string = "Перейти в главное меню"
-	HomeCmd            string = "/home"
-	MySchedule         string = "Мое расписание"
-	MyScheduleCmd      string = "/myschedule"
-	OtherSchedule      string = "Другое расписание"
-	OtherScheduleCmd   string = "/otherschedule"
-	GroupSchedule      string = "Группы"
-	GroupScheduleCmd   string = "/group"
-	TeacherSchedule    string = "Преподаватели"
-	TeacherScheduleCmd string = "/teacher"
-	OtherButtons       string = "Другие кнопки"
-	OtherButtonsCmd    string = "/other"
-	Support            string = "Служба поддержки"
-	SupportCmd         string = "/support"
-	Settings           string = "Настройки"
-	SettingsCmd        string = "/settings"
-	ChangeMyGroup      string = "Изменить мою группу"
-	ChangeMyGroupCmd   string = "/changemygroup"
-	Statistics         string = "Статистика"
-	StatisticsCmd      string = "/status"
-	Polity             string = "Политика использования"
-	PolityCmd          string = "/polity"
+	Start           Button = "/start"
+	Home            Button = "Перейти в главное меню"
+	MySchedule      Button = "Мое расписание"
+	OtherSchedule   Button = "Другое расписание"
+	GroupSchedule   Button = "Группы"
+	TeacherSchedule Button = "Преподаватели"
+	OtherButtons    Button = "Другие кнопки"
+	Support         Button = "Служба поддержки"
+	Settings        Button = "Настройки"
+	ChangeMyGroup   Button = "Изменить мою группу"
+	Statistics      Button = "Статистика"
+	Polity          Button = "Политика использования"
 )
+
+func (b Button) String() string {
+	return string(b)
+}
 
 func (b Button) Value() string {
 	switch b {
-	case Button(StartCmd):
+	case Button(Start):
 		return fmt.Sprintf(`Дорогие пользователи,
 
 Мы рады представить вам нашего нового Telegram бота! На данный момент, бот находится в стадии активной разработки, и мы работаем над расширением его функциональности.
@@ -108,8 +101,8 @@ func (b Button) Value() string {
 
 Используя бот "ХМТПК - РАСПИСАНИЕ", пользователи соглашаются с настоящей политикой использования (%s). Разработчик оставляет за собой право внесения изменений в политику использования без предварительного уведомления.
 
-`, PolityCmd)
-	case Button(Home), Button(HomeCmd):
+`, Polity.Cmd())
+	case Button(Home):
 		return fmt.Sprintf(`Для получения расписания, у вас есть два варианта:
 
 1. Для вашего собственного расписания нажмите кнопку "%s" (%s).
@@ -119,8 +112,8 @@ func (b Button) Value() string {
 Спасибо за использование нашего бота! Не стесняйтесь задавать вопросы, если у вас есть какие-либо. Вам всегда готовы помочь! (%s)
 
 С наилучшими пожеланиями,
-Команда разработчиков.`, MySchedule, MyScheduleCmd, GroupScheduleCmd, TeacherScheduleCmd, OtherSchedule, OtherScheduleCmd, SupportCmd)
-	case Button(Support), Button(SupportCmd):
+Команда разработчиков.`, MySchedule, MySchedule.Cmd(), GroupSchedule.Cmd(), TeacherSchedule.Cmd(), OtherSchedule, OtherSchedule.Cmd(), Support.Cmd())
+	case Button(Support):
 		return `Дорогие пользователи!
 
 Если у вас есть какие-либо вопросы, предложения или вам требуется помощь, наша служба поддержки готова вам помочь. Вы можете связаться с нами по ссылке: <a href="%s">Служба поддержки бота</a>.
@@ -131,31 +124,31 @@ func (b Button) Value() string {
 
 С наилучшими пожеланиями,
 Команда разработчиков.`
-	case Button(MySchedule), Button(MyScheduleCmd):
+	case Button(MySchedule):
 		return "-"
-	case Button(Settings), Button(SettingsCmd):
+	case Button(Settings):
 		return fmt.Sprintf(`Изменение настроек:
 
 1. Изменить мою группу (%s);
 
-Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, ChangeMyGroupCmd, HomeCmd)
-	case Button(ChangeMyGroup), Button(ChangeMyGroupCmd):
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, ChangeMyGroup.Cmd(), Home.Cmd())
+	case Button(ChangeMyGroup):
 		return fmt.Sprintf(`Пожалуйста, выберите или введите полный номер группы.
 
-Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, HomeCmd)
-	case Button(OtherSchedule), Button(OtherScheduleCmd):
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, Home.Cmd())
+	case Button(OtherSchedule):
 		return fmt.Sprintf(`Выберите расписание для группы (%s) или для преподавателя (%s).
 
-Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, GroupScheduleCmd, TeacherScheduleCmd, HomeCmd)
-	case Button(GroupSchedule), Button(GroupScheduleCmd):
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, GroupSchedule.Cmd(), TeacherSchedule.Cmd(), Home.Cmd())
+	case Button(GroupSchedule):
 		return fmt.Sprintf(`Пожалуйста, выберите или введите полный номер группы.
 
-Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, HomeCmd)
-	case Button(TeacherSchedule), Button(TeacherScheduleCmd):
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, Home.Cmd())
+	case Button(TeacherSchedule):
 		return fmt.Sprintf(`Пожалуйста, выберите или введите ФИО преподавателя.
 
-Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, HomeCmd)
-	case Button(OtherButtons), Button(OtherButtonsCmd):
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, Home.Cmd())
+	case Button(OtherButtons):
 		return fmt.Sprintf(`Показаны остальные кнопки:
 
 1. Политика использования (%s);
@@ -166,10 +159,10 @@ func (b Button) Value() string {
 
 4. Статистика (%s).
 
-Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, PolityCmd, SupportCmd, SettingsCmd, StatisticsCmd, HomeCmd)
-	case Button(Statistics), Button(StatisticsCmd):
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, Polity.Cmd(), Support.Cmd(), Settings.Cmd(), Statistics.Cmd(), Home.Cmd())
+	case Button(Statistics):
 		return "Статистика использования бота:\n\nза день: %d пользователя\n\nза месяц: %d пользователя"
-	case Button(Polity), Button(PolityCmd):
+	case Button(Polity):
 		return `<b>Политика использования бота "ХМТПК - РАСПИСАНИЕ"</b>
 
 <b>Последнее обновление:</b> 04.11.2023
@@ -189,6 +182,35 @@ func (b Button) Value() string {
 7. <b>Отказ от ответственности:</b> Разработчик бота "ХМТПК - РАСПИСАНИЕ" отказывается от какой-либо ответственности за потерю, ущерб или неудовлетворение, связанные с использованием бота или предоставляемой им информацией о расписании.
 
 Используя бот "ХМТПК - РАСПИСАНИЕ", пользователи соглашаются с настоящей политикой использования. Разработчик оставляет за собой право внесения изменений в политику использования без предварительного уведомления.`
+	default:
+		return "-"
+	}
+}
+
+func (b Button) Cmd() string {
+	switch b {
+	case Button(Home):
+		return "/home"
+	case Button(Support):
+		return "/support"
+	case Button(MySchedule):
+		return "/myschedule"
+	case Button(Settings):
+		return "/settings"
+	case Button(ChangeMyGroup):
+		return "/changemygroup"
+	case Button(OtherSchedule):
+		return "/otherschedule"
+	case Button(GroupSchedule):
+		return "/group"
+	case Button(TeacherSchedule):
+		return "/teacher"
+	case Button(OtherButtons):
+		return "/other"
+	case Button(Statistics):
+		return "/status"
+	case Button(Polity):
+		return "/polity"
 	default:
 		return "-"
 	}

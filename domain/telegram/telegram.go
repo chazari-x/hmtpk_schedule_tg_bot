@@ -39,7 +39,7 @@ func Start(cfg *config.Telegram, redis *redis.Redis, schedule *schedule.Schedule
 
 					log.Infof("[%s: %d - %d] %s", update.CallbackQuery.From.UserName, update.CallbackQuery.From.ID, update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data)
 
-					if err := storage.InsertChat(int(update.CallbackQuery.From.ID)); err != nil {
+					if err := storage.InsertChat(update.CallbackQuery.From.ID); err != nil {
 						log.Error(err)
 
 						if db, err := storage.Ping(); err != nil {
@@ -59,7 +59,7 @@ func Start(cfg *config.Telegram, redis *redis.Redis, schedule *schedule.Schedule
 			if update.Message.Text != "" {
 				log.Infof("[%s: %d - %d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Chat.ID, update.Message.Text)
 
-				if err := storage.InsertChat(int(update.Message.From.ID)); err != nil {
+				if err := storage.InsertChat(update.Message.From.ID); err != nil {
 					log.Error(err)
 
 					if db, err := storage.Ping(); err != nil {

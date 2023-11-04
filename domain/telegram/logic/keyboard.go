@@ -243,13 +243,13 @@ func (l *Logic) getInlineKeyboard(list, dayStr, value string) tgbotapi.InlineKey
 func (l *Logic) getKeyboard(list, value string) interface{} {
 	var keyboard tgbotapi.ReplyKeyboardMarkup
 	switch list {
-	case Settings:
+	case Settings.String():
 		keyboard = tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Home),
+				tgbotapi.NewKeyboardButton(Home.String()),
 			),
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(ChangeMyGroup),
+				tgbotapi.NewKeyboardButton(ChangeMyGroup.String()),
 			),
 			//tgbotapi.NewKeyboardButtonRow(
 			//	tgbotapi.NewKeyboardButton(Support),
@@ -261,16 +261,16 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			//	tgbotapi.NewKeyboardButton(Polity),
 			//),
 		)
-	case OtherSchedule:
+	case OtherSchedule.String():
 		keyboard = tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Home),
+				tgbotapi.NewKeyboardButton(Home.String()),
 			),
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(GroupSchedule),
+				tgbotapi.NewKeyboardButton(GroupSchedule.String()),
 			),
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(TeacherSchedule),
+				tgbotapi.NewKeyboardButton(TeacherSchedule.String()),
 			),
 		)
 	case MySchCode(0).Code(), MySchCode(1).Code(), MySchCode(2).Code(), MySchCode(3).Code(),
@@ -390,28 +390,28 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			tgbotapi.NewInlineKeyboardRow(buttons[2]...),
 			tgbotapi.NewInlineKeyboardRow(buttons[3]...),
 		)
-	case OtherButtons:
+	case OtherButtons.String():
 		keyboard = tgbotapi.NewReplyKeyboard(
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Home),
+				tgbotapi.NewKeyboardButton(Home.String()),
 			),
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Polity),
+				tgbotapi.NewKeyboardButton(Polity.String()),
 			),
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Support),
+				tgbotapi.NewKeyboardButton(Support.String()),
 			),
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Settings),
+				tgbotapi.NewKeyboardButton(Settings.String()),
 			),
 			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Statistics),
+				tgbotapi.NewKeyboardButton(Statistics.String()),
 			),
 		)
 	default:
-		if strings.Contains(list, ChangeMyGroup) {
-			numString := strings.ReplaceAll(list, ChangeMyGroup+" ", "")
-			if numString == "" || numString == ChangeMyGroup {
+		if strings.Contains(list, ChangeMyGroup.String()) {
+			numString := strings.ReplaceAll(list, ChangeMyGroup.String()+" ", "")
+			if numString == "" || numString == ChangeMyGroup.String() {
 				numString = "1"
 			}
 			num, err := strconv.Atoi(numString)
@@ -420,10 +420,10 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			}
 
 			var buttons [][]tgbotapi.KeyboardButton
-			buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
+			buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home.String())))
 
 			if num > 1 {
-				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(ChangeMyGroup+" "+strconv.Itoa(num-1))))
+				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(ChangeMyGroup.String()+" "+strconv.Itoa(num-1))))
 			}
 
 			groups := l.schedule.GetGroups()
@@ -432,13 +432,13 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			}
 
 			if num*50 < len(groups) {
-				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(ChangeMyGroup+" "+strconv.Itoa(num+1))))
+				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(ChangeMyGroup.String()+" "+strconv.Itoa(num+1))))
 			}
 
 			keyboard = tgbotapi.NewReplyKeyboard(buttons...)
-		} else if strings.Contains(list, GroupSchedule) {
-			numString := strings.ReplaceAll(list, GroupSchedule+" ", "")
-			if numString == "" || numString == GroupSchedule {
+		} else if strings.Contains(list, GroupSchedule.String()) {
+			numString := strings.ReplaceAll(list, GroupSchedule.String()+" ", "")
+			if numString == "" || numString == GroupSchedule.String() {
 				numString = "1"
 			}
 			num, err := strconv.Atoi(numString)
@@ -447,10 +447,10 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			}
 
 			var buttons [][]tgbotapi.KeyboardButton
-			buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
+			buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home.String())))
 
 			if num > 1 {
-				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(GroupSchedule+" "+strconv.Itoa(num-1))))
+				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(GroupSchedule.String()+" "+strconv.Itoa(num-1))))
 			}
 
 			groups := l.schedule.GetGroups()
@@ -459,13 +459,13 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			}
 
 			if num*50 < len(groups) {
-				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(GroupSchedule+" "+strconv.Itoa(num+1))))
+				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(GroupSchedule.String()+" "+strconv.Itoa(num+1))))
 			}
 
 			keyboard = tgbotapi.NewReplyKeyboard(buttons...)
-		} else if strings.Contains(list, TeacherSchedule) {
-			numString := strings.ReplaceAll(list, TeacherSchedule+" ", "")
-			if numString == "" || numString == TeacherSchedule {
+		} else if strings.Contains(list, TeacherSchedule.String()) {
+			numString := strings.ReplaceAll(list, TeacherSchedule.String()+" ", "")
+			if numString == "" || numString == TeacherSchedule.String() {
 				numString = "1"
 			}
 			num, err := strconv.Atoi(numString)
@@ -474,10 +474,10 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			}
 
 			var buttons [][]tgbotapi.KeyboardButton
-			buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home)))
+			buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(Home.String())))
 
 			if num > 1 {
-				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(TeacherSchedule+" "+strconv.Itoa(num-1))))
+				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(TeacherSchedule.String()+" "+strconv.Itoa(num-1))))
 			}
 
 			teachers := l.schedule.GetTeachers()
@@ -486,20 +486,20 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			}
 
 			if num*50 < len(teachers) {
-				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(TeacherSchedule+" "+strconv.Itoa(num+1))))
+				buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton(TeacherSchedule.String()+" "+strconv.Itoa(num+1))))
 			}
 
 			keyboard = tgbotapi.NewReplyKeyboard(buttons...)
 		} else {
 			keyboard = tgbotapi.NewReplyKeyboard(
 				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(MySchedule),
+					tgbotapi.NewKeyboardButton(MySchedule.String()),
 				),
 				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(OtherSchedule),
+					tgbotapi.NewKeyboardButton(OtherSchedule.String()),
 				),
 				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(OtherButtons),
+					tgbotapi.NewKeyboardButton(OtherButtons.String()),
 				),
 			)
 		}
