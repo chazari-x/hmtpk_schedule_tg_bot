@@ -158,13 +158,15 @@ func (b Button) Value() string {
 	case Button(OtherButtons), Button(OtherButtonsCmd):
 		return fmt.Sprintf(`Показаны остальные кнопки:
 
-1. Служба поддержки (%s);
+1. Политика использования (%s);
 
-2. Настройки (%s);
+2. Служба поддержки (%s);
 
-3. Статистика (%s).
+3. Настройки (%s);
 
-Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, SupportCmd, SettingsCmd, StatisticsCmd, HomeCmd)
+4. Статистика (%s).
+
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, PolityCmd, SupportCmd, SettingsCmd, StatisticsCmd, HomeCmd)
 	case Button(Statistics), Button(StatisticsCmd):
 		return "Статистика использования бота:\n\nза день: %d пользователя\n\nза месяц: %d пользователя"
 	case Button(Polity), Button(PolityCmd):
