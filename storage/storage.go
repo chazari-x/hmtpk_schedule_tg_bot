@@ -25,41 +25,63 @@ const (
 )
 
 type Storage struct {
-	db  *sql.DB
+	DB  *sql.DB
 	ctx context.Context
+	dsn string
 }
 
 func NewStorage(dbCfg *config.DataBase, ctx context.Context) (*Storage, *sql.DB, error) {
+	ctxNew, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbCfg.Host, dbCfg.Port, dbCfg.User, dbCfg.Pass, dbCfg.Name)
-	db, err := sql.Open("postgres", dsn)
+	db, err := connect(dsn, ctxNew)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	ctxNew, cancel := context.WithTimeout(ctx, time.Second*2)
+	return &Storage{DB: db, ctx: ctx, dsn: dsn}, db, nil
+}
+
+func connect(dsn string, ctx context.Context) (*sql.DB, error) {
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = db.PingContext(ctx); err != nil {
+		return nil, err
+	}
+
+	if _, err = db.ExecContext(ctx, createTable); err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func (s *Storage) Ping() (*sql.DB, error) {
+	ctx, cancel := context.WithTimeout(s.ctx, time.Second*2)
 	defer cancel()
 
-	if err = db.PingContext(ctxNew); err != nil {
-		return nil, nil, err
+	if err := s.DB.PingContext(ctx); err != nil {
+		db, err := connect(s.dsn, ctx)
+		return db, err
 	}
 
-	if _, err = db.ExecContext(ctxNew, createTable); err != nil {
-		return nil, nil, err
-	}
-
-	return &Storage{db: db, ctx: ctx}, db, nil
+	return nil, nil
 }
 
 func (s *Storage) InsertChat(chatID int) error {
-	if s.db == nil {
+	if s.DB == nil {
 		return errors.New("не установленно подключение к базе данных")
 	}
 
 	ctx, cancel := context.WithTimeout(s.ctx, time.Second)
 	defer cancel()
 
-	if _, err := s.db.ExecContext(ctx, insertChat, strconv.Itoa(chatID), time.Now()); err != nil {
+	if _, err := s.DB.ExecContext(ctx, insertChat, strconv.Itoa(chatID), time.Now()); err != nil {
 		return err
 	}
 
@@ -67,14 +89,14 @@ func (s *Storage) InsertChat(chatID int) error {
 }
 
 func (s *Storage) UpdateLastActivity(chatID int) error {
-	if s.db == nil {
+	if s.DB == nil {
 		return errors.New("не установленно подключение к базе данных")
 	}
 
 	ctx, cancel := context.WithTimeout(s.ctx, time.Second)
 	defer cancel()
 
-	if _, err := s.db.ExecContext(ctx, updateLastActivity, strconv.Itoa(chatID), time.Now()); err != nil {
+	if _, err := s.DB.ExecContext(ctx, updateLastActivity, strconv.Itoa(chatID), time.Now()); err != nil {
 		return err
 	}
 
@@ -82,7 +104,7 @@ func (s *Storage) UpdateLastActivity(chatID int) error {
 }
 
 func (s *Storage) GetActiveChats() (int, int, error) {
-	if s.db == nil {
+	if s.DB == nil {
 		return 0, 0, errors.New("не установленно подключение к базе данных")
 	}
 
@@ -90,7 +112,7 @@ func (s *Storage) GetActiveChats() (int, int, error) {
 	defer cancel()
 
 	var monthNum string
-	if err := s.db.QueryRowContext(ctx, getActiveChats, time.Now().AddDate(0, -1, 0)).Scan(&monthNum); err != nil {
+	if err := s.DB.QueryRowContext(ctx, getActiveChats, time.Now().AddDate(0, -1, 0)).Scan(&monthNum); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, 0, errors.New("storage is nil")
 		}
@@ -99,7 +121,7 @@ func (s *Storage) GetActiveChats() (int, int, error) {
 	}
 
 	var dayNum string
-	if err := s.db.QueryRowContext(ctx, getActiveChats, time.Now()).Scan(&dayNum); err != nil {
+	if err := s.DB.QueryRowContext(ctx, getActiveChats, time.Now()).Scan(&dayNum); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, 0, errors.New("storage is nil")
 		}
@@ -121,7 +143,7 @@ func (s *Storage) GetActiveChats() (int, int, error) {
 }
 
 func (s *Storage) SelectGroupID(chatID int) (string, error) {
-	if s.db == nil {
+	if s.DB == nil {
 		return "", errors.New("не установленно подключение к базе данных")
 	}
 
@@ -129,7 +151,7 @@ func (s *Storage) SelectGroupID(chatID int) (string, error) {
 	defer cancel()
 
 	var dbItem string
-	if err := s.db.QueryRowContext(ctx, selectGroupID, strconv.Itoa(chatID)).Scan(&dbItem); err != nil {
+	if err := s.DB.QueryRowContext(ctx, selectGroupID, strconv.Itoa(chatID)).Scan(&dbItem); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", errors.New("storage is nil")
 		}
@@ -141,14 +163,14 @@ func (s *Storage) SelectGroupID(chatID int) (string, error) {
 }
 
 func (s *Storage) ChangeGroupID(chatID int, group string) error {
-	if s.db == nil {
+	if s.DB == nil {
 		return errors.New("не установленно подключение к базе данных")
 	}
 
 	ctx, cancel := context.WithTimeout(s.ctx, time.Second)
 	defer cancel()
 
-	if _, err := s.db.ExecContext(ctx, changeGroupID, strconv.Itoa(chatID), group); err != nil {
+	if _, err := s.DB.ExecContext(ctx, changeGroupID, strconv.Itoa(chatID), group); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return errors.New("storage is nil")
 		}

@@ -62,11 +62,35 @@ func (l *Logic) UpdateMessage(callbackQuery *tgbotapi.CallbackQuery) {
 	} else if strings.Contains(callbackQuery.Data, MyScheduleNextCode) {
 		day = strings.ReplaceAll(callbackQuery.Data, MyScheduleNextCode, "")
 		buttons = l.getInlineKeyboard(MyScheduleNextCode, day, "")
-		sch = l.getMySchedule(callbackQuery.Message, day, nextWeek, week)
+		if group, err := l.storage.SelectGroupID(int(callbackQuery.Message.From.ID)); err != nil {
+			if db, err := l.storage.Ping(); err != nil {
+				log.Errorln(err)
+			} else {
+				l.storage.DB = db
+			}
+
+			sch = tgbotapi.NewMessage(callbackQuery.Message.Chat.ID, "Произошла ошибка при поиске вашей группы")
+		} else if group == "0" || group == "" {
+			sch = tgbotapi.NewMessage(callbackQuery.Message.Chat.ID, "У вас не выбрана группа")
+		} else {
+			sch = l.getMySchedule(callbackQuery.Message, day, nextWeek, group, week)
+		}
 	} else if strings.Contains(callbackQuery.Data, MyScheduleCode) {
 		day = strings.ReplaceAll(callbackQuery.Data, MyScheduleCode, "")
 		buttons = l.getInlineKeyboard(MyScheduleCode, day, "")
-		sch = l.getMySchedule(callbackQuery.Message, day, "", 0)
+		if group, err := l.storage.SelectGroupID(int(callbackQuery.Message.From.ID)); err != nil {
+			if db, err := l.storage.Ping(); err != nil {
+				log.Errorln(err)
+			} else {
+				l.storage.DB = db
+			}
+
+			sch = tgbotapi.NewMessage(callbackQuery.Message.Chat.ID, "Произошла ошибка при поиске вашей группы")
+		} else if group == "0" || group == "" {
+			sch = tgbotapi.NewMessage(callbackQuery.Message.Chat.ID, "У вас не выбрана группа")
+		} else {
+			sch = l.getMySchedule(callbackQuery.Message, day, "", group, 0)
+		}
 	}
 
 	msg := tgbotapi.NewEditMessageText(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, sch.Text)
@@ -75,7 +99,7 @@ func (l *Logic) UpdateMessage(callbackQuery *tgbotapi.CallbackQuery) {
 	log.Info(len(msg.Text))
 	if _, err := l.bot.Send(msg); err != nil {
 		if !strings.Contains(err.Error(), "message is not modified") {
-			log.Error(err)
+			log.Error(fmt.Errorf("%s: %s", err, msg.Text))
 			callbackResponse := tgbotapi.NewCallback(callbackQuery.ID, "Произошла ошибка")
 			if _, err := l.bot.AnswerCallbackQuery(callbackResponse); err != nil {
 				log.Error(err)
@@ -184,6 +208,12 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 					}
 
 					log.Errorln(err)
+
+					if db, err := l.storage.Ping(); err != nil {
+						log.Errorln(err)
+					} else {
+						l.storage.DB = db
+					}
 				}
 			}
 
@@ -191,12 +221,34 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 		}
 	default:
 		switch message.Text {
+		case Start:
+			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
+				log.Errorln(err)
+			}
+			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("%s%s", Button(Start).Value(), Button(Home).Value()))
 		case MySchedule:
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
 			buttons = MySchCode(7).Code()
-			msg = l.getMySchedule(message, "", "", 0)
+			group, err := l.storage.SelectGroupID(int(message.From.ID))
+			if err != nil {
+				if db, err := l.storage.Ping(); err != nil {
+					log.Errorln(err)
+				} else {
+					l.storage.DB = db
+				}
+
+				msg = tgbotapi.NewMessage(message.Chat.ID, "Произошла ошибка при поиске вашей группы")
+			} else if group == "0" || group == "" {
+				buttons = ChangeMyGroup
+				if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ChangeMyGroup); err != nil {
+					log.Errorln(err)
+				}
+				msg = tgbotapi.NewMessage(message.Chat.ID, Button(ChangeMyGroup).Value())
+			} else {
+				msg = l.getMySchedule(message, "", "", group, 0)
+			}
 		case OtherSchedule:
 			buttons = message.Text
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
@@ -248,6 +300,13 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			if err != nil {
 				log.Errorln(err)
 				msg = tgbotapi.NewMessage(message.Chat.ID, "Произошла ошибка при получении статистики.")
+
+				if db, err := l.storage.Ping(); err != nil {
+					log.Errorln(err)
+				} else {
+					l.storage.DB = db
+				}
+
 				break
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Button(Statistics).Value(), day, month))
@@ -259,10 +318,10 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 		}
 	}
 
-	_, _ = l.bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
-		ChatID:    message.Chat.ID,
-		MessageID: message.MessageID,
-	})
+	//_, _ = l.bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
+	//	ChatID:    message.Chat.ID,
+	//	MessageID: message.MessageID,
+	//})
 
 	msg.ReplyMarkup = l.getKeyboard(buttons, id)
 	msg.ParseMode = "html"
@@ -271,14 +330,4 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 	if err != nil {
 		log.Errorln(err)
 	}
-
-	//if get != TeacherSchedule && get != GroupSchedule && message.Text != MySchedule {
-	//	defer func(m tgbotapi.Message) {
-	//		time.Sleep(time.Second * 30)
-	//		_, _ = l.bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
-	//			ChatID:    m.Chat.ID,
-	//			MessageID: m.MessageID,
-	//		})
-	//	}(m)
-	//}
 }

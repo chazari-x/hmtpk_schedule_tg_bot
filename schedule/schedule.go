@@ -222,7 +222,11 @@ func (s *Schedule) GetScheduleByTeacher(teacher, date string, week int) ([]model
 					lesson.Group = value
 				case 5:
 					room := strings.TrimSpace(regexp.MustCompile("\\W-[0-9]{1,3}$").FindString(value))
-					lesson.Room = fmt.Sprintf("%s (%s)", room, strings.TrimSpace(strings.TrimRight(value, room)))
+					if room == "" {
+						lesson.Room = fmt.Sprintf("%s", strings.TrimSpace(strings.TrimRight(value, room)))
+					} else {
+						lesson.Room = fmt.Sprintf("%s (%s)", room, strings.TrimSpace(strings.TrimRight(value, room)))
+					}
 				}
 			}
 

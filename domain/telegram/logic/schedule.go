@@ -14,7 +14,7 @@ func getDay(day time.Weekday) string {
 	return strings.ToLower(Weekday(day).String())
 }
 
-func (l *Logic) getMySchedule(message *tgbotapi.Message, dayName, date string, week int) tgbotapi.MessageConfig {
+func (l *Logic) getMySchedule(message *tgbotapi.Message, dayName, date, group string, week int) tgbotapi.MessageConfig {
 	if week == 0 {
 		_, week = time.Now().ISOWeek()
 	}
@@ -23,12 +23,6 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, dayName, date string, w
 	}
 	var msg tgbotapi.MessageConfig
 	dayName = strings.ToLower(dayName)
-	group, err := l.storage.SelectGroupID(int(message.From.ID))
-	if err != nil {
-		return tgbotapi.NewMessage(message.Chat.ID, "Произошла ошибка при поиске вашей группы")
-	} else if group == "0" || group == "" {
-		return tgbotapi.NewMessage(message.Chat.ID, "У вас не выбрана группа")
-	}
 	if dayName == "" || dayName == "7" {
 		dayName = getDay(time.Now().Weekday())
 	} else {
@@ -58,51 +52,98 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, dayName, date string, w
 				return msg
 			}
 
+			var lessonNum string
+			var lessonText string
 			for i, lesson := range sch.Lessons {
-				if i == 0 {
-					msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
-					msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
-					if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
-						msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name[:len(lesson.Name)-3])
+				if num, err := strconv.Atoi(lesson.Num); num%2 == 0 && err == nil {
+					if lessonNum != lesson.Num {
+						lessonText = ""
+						lessonNum = lesson.Num
 					} else {
-						msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
+						lessonNum = lesson.Num
 					}
-					if lesson.Room != "СРС" {
-						msg.Text += fmt.Sprintf("\n[<code>%s</code>]", lesson.Room)
-					}
-					if lesson.Teacher != "<>" {
-						if lesson.Name[len(lesson.Name)-3:] == "(1)" {
-							msg.Text += fmt.Sprintf(" <code>%s</code> - подгруппа 1", lesson.Teacher)
-						} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
-							msg.Text += fmt.Sprintf(" <code>%s</code> - подгруппа 2", lesson.Teacher)
-						} else {
-							msg.Text += fmt.Sprintf(" <code>%s</code>", lesson.Teacher)
-						}
-					}
-				} else {
+
 					if lesson.Num == sch.Lessons[i-1].Num {
 						if lesson.Name[:len(lesson.Name)-4] != sch.Lessons[i-1].Name[:len(sch.Lessons[i-1].Name)-4] {
-							msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
+							lessonText += fmt.Sprintf("\n%s", lesson.Name)
 						}
 					} else {
-						msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
-						msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
 						if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
-							msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name[:len(lesson.Name)-3])
+							lessonText += fmt.Sprintf("\n%s", lesson.Name[:len(lesson.Name)-3])
 						} else {
-							msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
+							lessonText += fmt.Sprintf("\n%s", lesson.Name)
 						}
 					}
 					if lesson.Room != "СРС" {
-						msg.Text += fmt.Sprintf("\n[<code>%s</code>]", lesson.Room)
+						lessonText += fmt.Sprintf("\n[%s]", lesson.Room)
 					}
 					if lesson.Teacher != "<>" {
 						if lesson.Name[len(lesson.Name)-3:] == "(1)" {
-							msg.Text += fmt.Sprintf(" <code>%s</code> - подгруппа 1", lesson.Teacher)
+							lessonText += fmt.Sprintf(" %s - подгр. 1", lesson.Teacher)
 						} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
-							msg.Text += fmt.Sprintf(" <code>%s</code> - подгруппа 2", lesson.Teacher)
+							lessonText += fmt.Sprintf(" %s - подгр. 2", lesson.Teacher)
 						} else {
-							msg.Text += fmt.Sprintf(" <code>%s</code>", lesson.Teacher)
+							lessonText += fmt.Sprintf(" %s", lesson.Teacher)
+						}
+					}
+
+					if i < len(sch.Lessons)-1 {
+						if lesson.Num == sch.Lessons[i+1].Num {
+							continue
+						}
+					}
+
+					if strings.HasSuffix(msg.Text, lessonText) {
+						msg.Text = msg.Text[:len(msg.Text)-len(lessonText)] + fmt.Sprintf(" и %s [%s]", lesson.Num, lesson.Time) + msg.Text[len(msg.Text)-len(lessonText):]
+					} else {
+						msg.Text += fmt.Sprintf("</code>\n\n<code>Урок: %s [%s]", lesson.Num, lesson.Time) + lessonText
+					}
+				} else {
+					if i == 0 {
+						msg.Text += fmt.Sprintf("\n\n<code>Урок: %s", lesson.Num)
+						msg.Text += fmt.Sprintf(" [%s]", lesson.Time)
+						if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
+							msg.Text += fmt.Sprintf("\n%s", lesson.Name[:len(lesson.Name)-3])
+						} else {
+							msg.Text += fmt.Sprintf("\n%s", lesson.Name)
+						}
+						if lesson.Room != "СРС" {
+							msg.Text += fmt.Sprintf("\n[%s]", lesson.Room)
+						}
+						if lesson.Teacher != "<>" {
+							if lesson.Name[len(lesson.Name)-3:] == "(1)" {
+								msg.Text += fmt.Sprintf(" %s - подгр. 1", lesson.Teacher)
+							} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
+								msg.Text += fmt.Sprintf(" %s - подгр. 2", lesson.Teacher)
+							} else {
+								msg.Text += fmt.Sprintf(" %s", lesson.Teacher)
+							}
+						}
+					} else {
+						if lesson.Num == sch.Lessons[i-1].Num {
+							if lesson.Name[:len(lesson.Name)-4] != sch.Lessons[i-1].Name[:len(sch.Lessons[i-1].Name)-4] {
+								msg.Text += fmt.Sprintf("\n%s", lesson.Name)
+							}
+						} else {
+							msg.Text += fmt.Sprintf("</code>\n\n<code>Урок: %s", lesson.Num)
+							msg.Text += fmt.Sprintf(" [%s]", lesson.Time)
+							if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
+								msg.Text += fmt.Sprintf("\n%s", lesson.Name[:len(lesson.Name)-3])
+							} else {
+								msg.Text += fmt.Sprintf("\n%s", lesson.Name)
+							}
+						}
+						if lesson.Room != "СРС" {
+							msg.Text += fmt.Sprintf("\n[%s]", lesson.Room)
+						}
+						if lesson.Teacher != "<>" {
+							if lesson.Name[len(lesson.Name)-3:] == "(1)" {
+								msg.Text += fmt.Sprintf(" %s - подгр. 1", lesson.Teacher)
+							} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
+								msg.Text += fmt.Sprintf(" %s - подгр. 2", lesson.Teacher)
+							} else {
+								msg.Text += fmt.Sprintf(" %s", lesson.Teacher)
+							}
 						}
 					}
 				}
@@ -112,6 +153,8 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, dayName, date string, w
 
 	if msg.Text == "" {
 		msg.Text += "Произошла какая-то ошибка"
+	} else {
+		msg.Text += "</code>"
 	}
 
 	return msg
@@ -157,51 +200,98 @@ func (l *Logic) getGroupSchedule(message *tgbotapi.Message, dayName, date string
 				return msg
 			}
 
+			var lessonNum string
+			var lessonText string
 			for i, lesson := range sch.Lessons {
-				if i == 0 {
-					msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
-					msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
-					if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
-						msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name[:len(lesson.Name)-3])
+				if num, err := strconv.Atoi(lesson.Num); num%2 == 0 && err == nil {
+					if lessonNum != lesson.Num {
+						lessonText = ""
+						lessonNum = lesson.Num
 					} else {
-						msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
+						lessonNum = lesson.Num
 					}
-					if lesson.Room != "СРС" {
-						msg.Text += fmt.Sprintf("\n[<code>%s</code>]", lesson.Room)
-					}
-					if lesson.Teacher != "<>" {
-						if lesson.Name[len(lesson.Name)-3:] == "(1)" {
-							msg.Text += fmt.Sprintf(" <code>%s</code> - подгруппа 1", lesson.Teacher)
-						} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
-							msg.Text += fmt.Sprintf(" <code>%s</code> - подгруппа 2", lesson.Teacher)
-						} else {
-							msg.Text += fmt.Sprintf(" <code>%s</code>", lesson.Teacher)
-						}
-					}
-				} else {
+
 					if lesson.Num == sch.Lessons[i-1].Num {
 						if lesson.Name[:len(lesson.Name)-4] != sch.Lessons[i-1].Name[:len(sch.Lessons[i-1].Name)-4] {
-							msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
+							lessonText += fmt.Sprintf("\n%s", lesson.Name)
 						}
 					} else {
-						msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
-						msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
 						if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
-							msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name[:len(lesson.Name)-3])
+							lessonText += fmt.Sprintf("\n%s", lesson.Name[:len(lesson.Name)-3])
 						} else {
-							msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
+							lessonText += fmt.Sprintf("\n%s", lesson.Name)
 						}
 					}
 					if lesson.Room != "СРС" {
-						msg.Text += fmt.Sprintf("\n[<code>%s</code>]", lesson.Room)
+						lessonText += fmt.Sprintf("\n[%s]", lesson.Room)
 					}
 					if lesson.Teacher != "<>" {
 						if lesson.Name[len(lesson.Name)-3:] == "(1)" {
-							msg.Text += fmt.Sprintf(" <code>%s</code> - подгруппа 1", lesson.Teacher)
+							lessonText += fmt.Sprintf(" %s - подгр. 1", lesson.Teacher)
 						} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
-							msg.Text += fmt.Sprintf(" <code>%s</code> - подгруппа 2", lesson.Teacher)
+							lessonText += fmt.Sprintf(" %s - подгр. 2", lesson.Teacher)
 						} else {
-							msg.Text += fmt.Sprintf(" <code>%s</code>", lesson.Teacher)
+							lessonText += fmt.Sprintf(" %s", lesson.Teacher)
+						}
+					}
+
+					if i < len(sch.Lessons)-1 {
+						if lesson.Num == sch.Lessons[i+1].Num {
+							continue
+						}
+					}
+
+					if strings.HasSuffix(msg.Text, lessonText) {
+						msg.Text = msg.Text[:len(msg.Text)-len(lessonText)] + fmt.Sprintf(" и %s [%s]", lesson.Num, lesson.Time) + msg.Text[len(msg.Text)-len(lessonText):]
+					} else {
+						msg.Text += fmt.Sprintf("</code>\n\n<code>Урок: %s [%s]", lesson.Num, lesson.Time) + lessonText
+					}
+				} else {
+					if i == 0 {
+						msg.Text += fmt.Sprintf("\n\n<code>Урок: %s", lesson.Num)
+						msg.Text += fmt.Sprintf(" [%s]", lesson.Time)
+						if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
+							msg.Text += fmt.Sprintf("\n%s", lesson.Name[:len(lesson.Name)-3])
+						} else {
+							msg.Text += fmt.Sprintf("\n%s", lesson.Name)
+						}
+						if lesson.Room != "СРС" {
+							msg.Text += fmt.Sprintf("\n[%s]", lesson.Room)
+						}
+						if lesson.Teacher != "<>" {
+							if lesson.Name[len(lesson.Name)-3:] == "(1)" {
+								msg.Text += fmt.Sprintf(" %s - подгр. 1", lesson.Teacher)
+							} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
+								msg.Text += fmt.Sprintf(" %s - подгр. 2", lesson.Teacher)
+							} else {
+								msg.Text += fmt.Sprintf(" %s", lesson.Teacher)
+							}
+						}
+					} else {
+						if lesson.Num == sch.Lessons[i-1].Num {
+							if lesson.Name[:len(lesson.Name)-4] != sch.Lessons[i-1].Name[:len(sch.Lessons[i-1].Name)-4] {
+								msg.Text += fmt.Sprintf("\n%s", lesson.Name)
+							}
+						} else {
+							msg.Text += fmt.Sprintf("</code>\n\n<code>Урок: %s", lesson.Num)
+							msg.Text += fmt.Sprintf(" [%s]", lesson.Time)
+							if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
+								msg.Text += fmt.Sprintf("\n%s", lesson.Name[:len(lesson.Name)-3])
+							} else {
+								msg.Text += fmt.Sprintf("\n%s", lesson.Name)
+							}
+						}
+						if lesson.Room != "СРС" {
+							msg.Text += fmt.Sprintf("\n[%s]", lesson.Room)
+						}
+						if lesson.Teacher != "<>" {
+							if lesson.Name[len(lesson.Name)-3:] == "(1)" {
+								msg.Text += fmt.Sprintf(" %s - подгр. 1", lesson.Teacher)
+							} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
+								msg.Text += fmt.Sprintf(" %s - подгр. 2", lesson.Teacher)
+							} else {
+								msg.Text += fmt.Sprintf(" %s", lesson.Teacher)
+							}
 						}
 					}
 				}
@@ -211,6 +301,8 @@ func (l *Logic) getGroupSchedule(message *tgbotapi.Message, dayName, date string
 
 	if msg.Text == "" {
 		msg.Text += "Произошла какая-то ошибка"
+	} else {
+		msg.Text += "</code>"
 	}
 
 	return msg
@@ -249,27 +341,54 @@ func (l *Logic) getTeacherSchedule(message *tgbotapi.Message, dayName, date stri
 
 	for _, sch := range schs {
 		if strings.Contains(sch.Date, dayName) {
-			msg.Text += fmt.Sprintf("Преподаватель: %s\n%s", teacher, sch.Date)
+			msg.Text += fmt.Sprintf("Преподаватель: %s\n%s", strings.ReplaceAll(teacher, "+", " "), sch.Date)
 
 			if len(sch.Lessons) == 0 {
 				msg.Text += "\nРасписания нет (пар нет)"
 				return msg
 			}
 
-			for _, lesson := range sch.Lessons {
-				msg.Text += fmt.Sprintf("\n\nУрок: <code>%s</code>", lesson.Num)
-				msg.Text += fmt.Sprintf(" [<code>%s</code>]", lesson.Time)
-				if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
-					msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name[:len(lesson.Name)-3])
+			for i, lesson := range sch.Lessons {
+				if num, err := strconv.Atoi(lesson.Num); num%2 == 0 && err == nil {
+					var lessonText string
+
+					if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
+						lessonText += fmt.Sprintf("\n%s", lesson.Name[:len(lesson.Name)-3])
+					} else {
+						lessonText += fmt.Sprintf("\n%s", lesson.Name)
+					}
+					if lesson.Name[len(lesson.Name)-3:] == "(1)" {
+						lessonText += fmt.Sprintf("\n[%s] %s - подгр. 1", lesson.Room, lesson.Group)
+					} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
+						lessonText += fmt.Sprintf("\n[%s] %s - подгр. 2", lesson.Room, lesson.Group)
+					} else {
+						lessonText += fmt.Sprintf("\n[%s] %s", lesson.Room, lesson.Group)
+					}
+
+					if strings.HasSuffix(msg.Text, lessonText) {
+						msg.Text = msg.Text[:len(msg.Text)-len(lessonText)] + fmt.Sprintf(" и %s [%s]", lesson.Num, lesson.Time) + msg.Text[len(msg.Text)-len(lessonText):]
+					} else {
+						msg.Text += fmt.Sprintf("</code>\n\n<code>Урок: %s [%s]", lesson.Num, lesson.Time) + lessonText
+					}
 				} else {
-					msg.Text += fmt.Sprintf("\n<code>%s</code>", lesson.Name)
-				}
-				if lesson.Name[len(lesson.Name)-3:] == "(1)" {
-					msg.Text += fmt.Sprintf("\n[<code>%s</code>] <code>%s</code> - подгруппа 1", lesson.Room, lesson.Group)
-				} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
-					msg.Text += fmt.Sprintf("\n[<code>%s</code>] <code>%s</code> - подгруппа 2", lesson.Room, lesson.Group)
-				} else {
-					msg.Text += fmt.Sprintf("\n[<code>%s</code>] <code>%s</code>", lesson.Room, lesson.Group)
+					if i == 0 {
+						msg.Text += fmt.Sprintf("\n\n<code>Урок: %s", lesson.Num)
+					} else {
+						msg.Text += fmt.Sprintf("</code>\n\n<code>Урок: %s", lesson.Num)
+					}
+					msg.Text += fmt.Sprintf(" [%s]", lesson.Time)
+					if lesson.Name[len(lesson.Name)-3:] == "(1)" || lesson.Name[len(lesson.Name)-3:] == "(2)" {
+						msg.Text += fmt.Sprintf("\n%s", lesson.Name[:len(lesson.Name)-3])
+					} else {
+						msg.Text += fmt.Sprintf("\n%s", lesson.Name)
+					}
+					if lesson.Name[len(lesson.Name)-3:] == "(1)" {
+						msg.Text += fmt.Sprintf("\n[%s] %s - подгр. 1", lesson.Room, lesson.Group)
+					} else if lesson.Name[len(lesson.Name)-3:] == "(2)" {
+						msg.Text += fmt.Sprintf("\n[%s] %s - подгр. 2", lesson.Room, lesson.Group)
+					} else {
+						msg.Text += fmt.Sprintf("\n[%s] %s", lesson.Room, lesson.Group)
+					}
 				}
 			}
 		}
@@ -277,6 +396,8 @@ func (l *Logic) getTeacherSchedule(message *tgbotapi.Message, dayName, date stri
 
 	if msg.Text == "" {
 		msg.Text += "Произошла какая-то ошибка"
+	} else {
+		msg.Text += "</code>"
 	}
 
 	return msg

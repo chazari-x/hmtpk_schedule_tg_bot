@@ -41,6 +41,12 @@ func Start(cfg *config.Telegram, redis *redis.Redis, schedule *schedule.Schedule
 
 					if err := storage.InsertChat(int(update.CallbackQuery.From.ID)); err != nil {
 						log.Error(err)
+
+						if db, err := storage.Ping(); err != nil {
+							log.Errorln(err)
+						} else {
+							storage.DB = db
+						}
 					}
 
 					update.CallbackQuery.Message.From.ID = update.CallbackQuery.From.ID
@@ -55,6 +61,12 @@ func Start(cfg *config.Telegram, redis *redis.Redis, schedule *schedule.Schedule
 
 				if err := storage.InsertChat(int(update.Message.From.ID)); err != nil {
 					log.Error(err)
+
+					if db, err := storage.Ping(); err != nil {
+						log.Errorln(err)
+					} else {
+						storage.DB = db
+					}
 				}
 
 				newLogic.SendAnswer(update.Message)
