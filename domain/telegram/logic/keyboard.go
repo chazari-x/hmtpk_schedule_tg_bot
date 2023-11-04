@@ -251,12 +251,15 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(ChangeMyGroup),
 			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Support),
-			),
-			tgbotapi.NewKeyboardButtonRow(
-				tgbotapi.NewKeyboardButton(Statistics),
-			),
+			//tgbotapi.NewKeyboardButtonRow(
+			//	tgbotapi.NewKeyboardButton(Support),
+			//),
+			//tgbotapi.NewKeyboardButtonRow(
+			//	tgbotapi.NewKeyboardButton(Statistics),
+			//),
+			//tgbotapi.NewKeyboardButtonRow(
+			//	tgbotapi.NewKeyboardButton(Polity),
+			//),
 		)
 	case OtherSchedule:
 		keyboard = tgbotapi.NewReplyKeyboard(
@@ -395,9 +398,9 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(Support),
 			),
-			//tgbotapi.NewKeyboardButtonRow(
-			//	tgbotapi.NewKeyboardButton(Settings),
-			//),
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton(Settings),
+			),
 			tgbotapi.NewKeyboardButtonRow(
 				tgbotapi.NewKeyboardButton(Statistics),
 			),
@@ -493,7 +496,7 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 					tgbotapi.NewKeyboardButton(OtherSchedule),
 				),
 				tgbotapi.NewKeyboardButtonRow(
-					tgbotapi.NewKeyboardButton(Settings),
+					tgbotapi.NewKeyboardButton(OtherButtons),
 				),
 			)
 		}
