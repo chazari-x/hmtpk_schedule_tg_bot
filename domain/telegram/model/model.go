@@ -134,17 +134,37 @@ func (b Button) Value() string {
 	case Button(MySchedule), Button(MyScheduleCmd):
 		return "-"
 	case Button(Settings), Button(SettingsCmd):
-		return "Ваши настройки."
+		return fmt.Sprintf(`Изменение настроек:
+
+1. Изменить мою группу (%s);
+
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, ChangeMyGroupCmd, HomeCmd)
 	case Button(ChangeMyGroup), Button(ChangeMyGroupCmd):
-		return "Пожалуйста, выберите или введите полный номер группы."
+		return fmt.Sprintf(`Пожалуйста, выберите или введите полный номер группы.
+
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, HomeCmd)
 	case Button(OtherSchedule), Button(OtherScheduleCmd):
-		return "Выберите расписание."
+		return fmt.Sprintf(`Выберите расписание для группы (%s) или для преподавателя (%s).
+
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, GroupScheduleCmd, TeacherScheduleCmd, HomeCmd)
 	case Button(GroupSchedule), Button(GroupScheduleCmd):
-		return "Пожалуйста, выберите или введите полный номер группы."
+		return fmt.Sprintf(`Пожалуйста, выберите или введите полный номер группы.
+
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, HomeCmd)
 	case Button(TeacherSchedule), Button(TeacherScheduleCmd):
-		return "Пожалуйста, выберите или введите ФИО преподавателя."
+		return fmt.Sprintf(`Пожалуйста, выберите или введите ФИО преподавателя.
+
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, HomeCmd)
 	case Button(OtherButtons), Button(OtherButtonsCmd):
-		return "Показаны остальные кнопки."
+		return fmt.Sprintf(`Показаны остальные кнопки:
+
+1. Служба поддержки (%s);
+
+2. Настройки (%s);
+
+3. Статистика (%s).
+
+Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, SupportCmd, SettingsCmd, StatisticsCmd, HomeCmd)
 	case Button(Statistics), Button(StatisticsCmd):
 		return "Статистика использования бота:\n\nза день: %d пользователя\n\nза месяц: %d пользователя"
 	case Button(Polity), Button(PolityCmd):
