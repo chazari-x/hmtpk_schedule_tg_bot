@@ -2,7 +2,7 @@ package logic
 
 import (
 	"fmt"
-	. "github.com/chazari-x/hmtpk_schedule/domain/telegram/model"
+	time2 "github.com/chazari-x/hmtpk_schedule/time"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
 	"strconv"
@@ -11,7 +11,7 @@ import (
 )
 
 func getDay(day time.Weekday) string {
-	return strings.ToLower(Weekday(day).String())
+	return strings.ToLower(time2.Weekday(day).String())
 }
 
 func (l *Logic) getMySchedule(message *tgbotapi.Message, dayName, date, group string, week int) tgbotapi.MessageConfig {

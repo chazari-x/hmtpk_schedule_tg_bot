@@ -8,6 +8,7 @@ import (
 	"github.com/chazari-x/hmtpk_schedule/redis"
 	"github.com/chazari-x/hmtpk_schedule/schedule"
 	"github.com/chazari-x/hmtpk_schedule/storage"
+	time2 "github.com/chazari-x/hmtpk_schedule/time"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
 	"strconv"
@@ -118,7 +119,7 @@ func (l *Logic) UpdateMessage(callbackQuery *tgbotapi.CallbackQuery) {
 		log.Error(err)
 		return
 	}
-	callbackResponse := tgbotapi.NewCallback(callbackQuery.ID, fmt.Sprintf("Показано расписание на %s", Weekday(dayNum).String()))
+	callbackResponse := tgbotapi.NewCallback(callbackQuery.ID, fmt.Sprintf("Показано расписание на %s", time2.Weekday(dayNum).String()))
 	if _, err := l.bot.AnswerCallbackQuery(callbackResponse); err != nil {
 		log.Error(err)
 	}
@@ -155,7 +156,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Home.Value())
 		default:
-			if strings.Contains(message.Text, GroupSchedule.String()) {
+			if strings.Contains(message.Text, GroupSchedule.String()) || strings.Contains(message.Text, GroupSchedule.Cmd()) {
 				buttons = message.Text
 				msg = tgbotapi.NewMessage(message.Chat.ID, GroupSchedule.Value())
 				break
@@ -174,7 +175,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, Home.Value())
 		default:
-			if strings.Contains(message.Text, TeacherSchedule.String()) {
+			if strings.Contains(message.Text, TeacherSchedule.String()) || strings.Contains(message.Text, TeacherSchedule.Cmd()) {
 				buttons = message.Text
 				msg = tgbotapi.NewMessage(message.Chat.ID, TeacherSchedule.Value())
 				break
@@ -193,12 +194,11 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			msg = tgbotapi.NewMessage(message.Chat.ID, Home.Value())
 		default:
 			if message.Text != "" {
-				if strings.Contains(message.Text, ChangeMyGroup.String()) {
+				if strings.Contains(message.Text, ChangeMyGroup.String()) || strings.Contains(message.Text, ChangeMyGroup.Cmd()) {
 					buttons = message.Text
 					msg = tgbotapi.NewMessage(message.Chat.ID, ChangeMyGroup.Value())
 					break
 				}
-
 				group := l.schedule.GetGroup(message.Text)
 				if group != "" {
 					err := l.storage.ChangeGroupID(message.From.ID, group)
@@ -321,6 +321,22 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			}
 			msg = tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(Polity.Value(), l.cfg.Support.Href))
 		default:
+			if strings.Contains(message.Text, GroupSchedule.String()) || strings.Contains(message.Text, GroupSchedule.Cmd()) {
+				message.Text = strings.ReplaceAll(message.Text, GroupSchedule.Cmd(), GroupSchedule.String())
+				buttons = message.Text
+				msg = tgbotapi.NewMessage(message.Chat.ID, GroupSchedule.Value())
+				break
+			} else if strings.Contains(message.Text, TeacherSchedule.String()) || strings.Contains(message.Text, TeacherSchedule.Cmd()) {
+				message.Text = strings.ReplaceAll(message.Text, TeacherSchedule.Cmd(), TeacherSchedule.String())
+				buttons = message.Text
+				msg = tgbotapi.NewMessage(message.Chat.ID, TeacherSchedule.Value())
+				break
+			} else if strings.Contains(message.Text, ChangeMyGroup.String()) || strings.Contains(message.Text, ChangeMyGroup.Cmd()) {
+				message.Text = strings.ReplaceAll(message.Text, ChangeMyGroup.Cmd(), ChangeMyGroup.String())
+				buttons = message.Text
+				msg = tgbotapi.NewMessage(message.Chat.ID, ChangeMyGroup.Value())
+				break
+			}
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
