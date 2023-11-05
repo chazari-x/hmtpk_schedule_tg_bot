@@ -23,7 +23,7 @@ func (l *Logic) getMySchedule(message *tgbotapi.Message, dayName, date, group st
 	}
 	var msg tgbotapi.MessageConfig
 	dayName = strings.ToLower(dayName)
-	if dayName == "" || dayName == "7" {
+	if dayName == "" || dayName == "0" {
 		dayName = getDay(time.Now().Weekday())
 	} else {
 		day, err := strconv.Atoi(dayName)
@@ -171,7 +171,7 @@ func (l *Logic) getGroupSchedule(message *tgbotapi.Message, dayName, date string
 	dayName = strings.ToLower(dayName)
 	//group := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(message.Text, GroupScheduleIcoOne, ""), GroupScheduleIcoTwo, ""), " ", "")
 	group := message.Text
-	if dayName == "" || dayName == "7" {
+	if dayName == "" || dayName == "0" {
 		dayName = getDay(time.Now().Weekday())
 	} else {
 		day, err := strconv.Atoi(dayName)
@@ -319,7 +319,7 @@ func (l *Logic) getTeacherSchedule(message *tgbotapi.Message, dayName, date stri
 	dayName = strings.ToLower(dayName)
 	//teacher := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(message.Text, TeacherScheduleIcoOne+" ", ""), " "+TeacherScheduleIcoTwo, ""), " ", "+")
 	teacher := strings.ReplaceAll(message.Text, " ", "+")
-	if dayName == "" || dayName == "7" {
+	if dayName == "" || dayName == "0" {
 		dayName = getDay(time.Now().Weekday())
 	} else {
 		atoi, err := strconv.Atoi(dayName)

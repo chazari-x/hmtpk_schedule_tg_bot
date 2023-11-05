@@ -14,40 +14,32 @@ func (l *Logic) getInlineKeyboard(list, dayStr, value string) tgbotapi.InlineKey
 	day, err := strconv.Atoi(dayStr)
 	if err != nil {
 		log.Error(err)
-		day = int(time.Now().Weekday())
+		day = NowWeekday()
 	}
-
+	t := NowWeekday()
 	var keyboard tgbotapi.InlineKeyboardMarkup
 	switch list {
 	case TeacherScheduleCode:
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-t).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, TeacherSchCode(i).Code(value)))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, TeacherSchCode(i).Code(value)))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, day-int(time.Now().Weekday())).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, day-t).Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, TeacherSchCode(day).Code(value)))
-		//if day != int(time.Now().Weekday()) {
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, TeacherSchCode(time.Now().Weekday()).Code(value)))
+		//if day != t {
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(t).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, TeacherSchCode(t).Code(value)))
 		//}
 
-		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7+7-int(time.Now().Weekday())).Format("02.01"))
+		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-t).Format("02.01"), time.Now().AddDate(0, 0, 7+7-t).Format("02.01"))
 		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonNext, TeacherSchNextCode(1).Code(value)))
 
 		keyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -59,31 +51,23 @@ func (l *Logic) getInlineKeyboard(list, dayStr, value string) tgbotapi.InlineKey
 	case TeacherScheduleNextCode:
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, 7+i-t).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, TeacherSchNextCode(i).Code(value)))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, TeacherSchNextCode(i).Code(value)))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, 7+day-int(time.Now().AddDate(0, 0, 7).Weekday())).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, 7+day-t).Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, TeacherSchNextCode(day).Code(value)))
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, TeacherSchCode(time.Now().Weekday()).Code(value)))
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(t).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, TeacherSchCode(t).Code(value)))
 
-		buttonPast := fmt.Sprintf("Текущая неделя: %s - %s", time.Now().AddDate(0, 0, 1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7-int(time.Now().Weekday())).Format("02.01"))
-		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonPast, TeacherSchCode(time.Now().Weekday()).Code(value)))
+		buttonPast := fmt.Sprintf("Текущая неделя: %s - %s", time.Now().AddDate(0, 0, 1-t).Format("02.01"), time.Now().AddDate(0, 0, 7-t).Format("02.01"))
+		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonPast, TeacherSchCode(t).Code(value)))
 
 		keyboard = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(buttons[0]...),
@@ -94,32 +78,24 @@ func (l *Logic) getInlineKeyboard(list, dayStr, value string) tgbotapi.InlineKey
 	case GroupScheduleCode:
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-t).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, GroupSchCode(i).Code(value)))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, GroupSchCode(i).Code(value)))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, day-int(time.Now().Weekday())).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, day-t).Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, GroupSchCode(day).Code(value)))
-		//if day != int(time.Now().Weekday()) {
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, GroupSchCode(time.Now().Weekday()).Code(value)))
+		//if day != t {
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(t).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, GroupSchCode(t).Code(value)))
 		//}
 
-		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7+7-int(time.Now().Weekday())).Format("02.01"))
+		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-t).Format("02.01"), time.Now().AddDate(0, 0, 7+7-t).Format("02.01"))
 		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonNext, GroupSchNextCode(1).Code(value)))
 
 		keyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -131,31 +107,23 @@ func (l *Logic) getInlineKeyboard(list, dayStr, value string) tgbotapi.InlineKey
 	case GroupScheduleNextCode:
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, 7+i-t).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, GroupSchNextCode(i).Code(value)))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, GroupSchNextCode(i).Code(value)))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, 7+day-int(time.Now().AddDate(0, 0, 7).Weekday())).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, 7+day-t).Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, GroupSchNextCode(day).Code(value)))
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, GroupSchCode(time.Now().Weekday()).Code(value)))
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(t).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, GroupSchCode(t).Code(value)))
 
-		buttonPast := fmt.Sprintf("Текущая неделя: %s - %s", time.Now().AddDate(0, 0, 1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7-int(time.Now().Weekday())).Format("02.01"))
-		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonPast, GroupSchCode(time.Now().Weekday()).Code(value)))
+		buttonPast := fmt.Sprintf("Текущая неделя: %s - %s", time.Now().AddDate(0, 0, 1-t).Format("02.01"), time.Now().AddDate(0, 0, 7-t).Format("02.01"))
+		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonPast, GroupSchCode(t).Code(value)))
 
 		keyboard = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(buttons[0]...),
@@ -166,32 +134,24 @@ func (l *Logic) getInlineKeyboard(list, dayStr, value string) tgbotapi.InlineKey
 	case MyScheduleCode:
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-t).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, MySchCode(i).Code()))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, MySchCode(i).Code()))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, day-int(time.Now().Weekday())).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, day-t).Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, MySchCode(day).Code()))
-		//if day != int(time.Now().Weekday()) {
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, MySchCode(time.Now().Weekday()).Code()))
+		//if day != t {
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(t).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, MySchCode(t).Code()))
 		//}
 
-		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7+7-int(time.Now().Weekday())).Format("02.01"))
+		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-t).Format("02.01"), time.Now().AddDate(0, 0, 7+7-t).Format("02.01"))
 		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonNext, MySchNextCode(1).Code()))
 
 		keyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -203,31 +163,23 @@ func (l *Logic) getInlineKeyboard(list, dayStr, value string) tgbotapi.InlineKey
 	case MyScheduleNextCode:
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, 7+i-t).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, MySchNextCode(i).Code()))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, MySchNextCode(i).Code()))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, 7+day-int(time.Now().AddDate(0, 0, 7).Weekday())).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, 7+day-t).Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, MySchNextCode(day).Code()))
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, MySchCode(time.Now().Weekday()).Code()))
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(t).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, MySchCode(t).Code()))
 
-		buttonPast := fmt.Sprintf("Текущая неделя: %s - %s", time.Now().AddDate(0, 0, 1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7-int(time.Now().Weekday())).Format("02.01"))
-		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonPast, MySchCode(time.Now().Weekday()).Code()))
+		buttonPast := fmt.Sprintf("Текущая неделя: %s - %s", time.Now().AddDate(0, 0, 1-t).Format("02.01"), time.Now().AddDate(0, 0, 7-t).Format("02.01"))
+		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonPast, MySchCode(t).Code()))
 
 		keyboard = tgbotapi.NewInlineKeyboardMarkup(
 			tgbotapi.NewInlineKeyboardRow(buttons[0]...),
@@ -276,34 +228,26 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 	case MySchCode(0).Code(), MySchCode(1).Code(), MySchCode(2).Code(), MySchCode(3).Code(),
 		MySchCode(4).Code(), MySchCode(5).Code(), MySchCode(6).Code(), MySchCode(7).Code():
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
-		day := int(time.Now().Weekday())
+		day := NowWeekday()
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-day).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, MySchCode(i).Code()))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, MySchCode(i).Code()))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, int(time.Now().Weekday())-day).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, MySchCode(day).Code()))
-		//if day != int(time.Now().Weekday()) {
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, MySchCode(time.Now().Weekday()).Code()))
+		//if day != int(day) {
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(day).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, MySchCode(day).Code()))
 		//}
 
-		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7+7-int(time.Now().Weekday())).Format("02.01"))
+		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-day).Format("02.01"), time.Now().AddDate(0, 0, 7+7-day).Format("02.01"))
 		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonNext, MySchNextCode(1).Code()))
 
 		return tgbotapi.NewInlineKeyboardMarkup(
@@ -315,34 +259,26 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 	case GroupSchCode(0).Code(value), GroupSchCode(1).Code(value), GroupSchCode(2).Code(value), GroupSchCode(3).Code(value),
 		GroupSchCode(4).Code(value), GroupSchCode(5).Code(value), GroupSchCode(6).Code(value), GroupSchCode(7).Code(value):
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
-		day := int(time.Now().Weekday())
+		day := NowWeekday()
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-day).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, GroupSchCode(i).Code(value)))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, GroupSchCode(i).Code(value)))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, int(time.Now().Weekday())-day).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, GroupSchCode(day).Code(value)))
-		//if day != int(time.Now().Weekday()) {
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, GroupSchCode(time.Now().Weekday()).Code(value)))
+		//if day != t {
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(day).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, GroupSchCode(day).Code(value)))
 		//}
 
-		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7+7-int(time.Now().Weekday())).Format("02.01"))
+		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-day).Format("02.01"), time.Now().AddDate(0, 0, 7+7-day).Format("02.01"))
 		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonNext, GroupSchNextCode(1).Code(value)))
 
 		return tgbotapi.NewInlineKeyboardMarkup(
@@ -354,34 +290,26 @@ func (l *Logic) getKeyboard(list, value string) interface{} {
 	case TeacherSchCode(0).Code(value), TeacherSchCode(1).Code(value), TeacherSchCode(2).Code(value), TeacherSchCode(3).Code(value),
 		TeacherSchCode(4).Code(value), TeacherSchCode(5).Code(value), TeacherSchCode(6).Code(value), TeacherSchCode(7).Code(value):
 		buttons := [][]tgbotapi.InlineKeyboardButton{{}, {}, {}, {}}
-		day := int(time.Now().Weekday())
+		day := NowWeekday()
 		for i := 1; i <= 7 && i > 0; i++ {
-			if i == 7 {
-				i = 0
-			}
-
 			if i != day {
-				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-int(time.Now().Weekday())).Format("02.01"))
+				buttonDay := fmt.Sprintf("%s: %s", Weekday(i).ShortString(), time.Now().AddDate(0, 0, i-day).Format("02.01"))
 				if len(buttons[0]) < 3 {
 					buttons[0] = append(buttons[0], tgbotapi.NewInlineKeyboardButtonData(buttonDay, TeacherSchCode(i).Code(value)))
 				} else {
 					buttons[1] = append(buttons[1], tgbotapi.NewInlineKeyboardButtonData(buttonDay, TeacherSchCode(i).Code(value)))
 				}
 			}
-
-			if i == 0 {
-				break
-			}
 		}
 
-		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().AddDate(0, 0, int(time.Now().Weekday())-day).Format("02.01"))
+		buttonUpdate := fmt.Sprintf("Обновить - %s: %s", Weekday(day).ShortString(), time.Now().Format("02.01"))
 		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonUpdate, TeacherSchCode(day).Code(value)))
-		//if day != int(time.Now().Weekday()) {
-		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(time.Now().Weekday()).ShortString(), time.Now().Format("02.01"))
-		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, TeacherSchCode(time.Now().Weekday()).Code(value)))
+		//if day != t {
+		buttonToday := fmt.Sprintf("Сегодня - %s: %s", Weekday(day).ShortString(), time.Now().Format("02.01"))
+		buttons[2] = append(buttons[2], tgbotapi.NewInlineKeyboardButtonData(buttonToday, TeacherSchCode(day).Code(value)))
 		//}
 
-		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-int(time.Now().Weekday())).Format("02.01"), time.Now().AddDate(0, 0, 7+7-int(time.Now().Weekday())).Format("02.01"))
+		buttonNext := fmt.Sprintf("Следующая неделя: %s - %s", time.Now().AddDate(0, 0, 7+1-day).Format("02.01"), time.Now().AddDate(0, 0, 7+7-day).Format("02.01"))
 		buttons[3] = append(buttons[3], tgbotapi.NewInlineKeyboardButtonData(buttonNext, TeacherSchNextCode(1).Code(value)))
 
 		return tgbotapi.NewInlineKeyboardMarkup(

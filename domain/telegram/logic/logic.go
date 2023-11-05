@@ -161,7 +161,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 				break
 			}
 			id = message.Text
-			buttons = GroupSchCode(7).Code(id)
+			buttons = GroupSchCode(0).Code(id)
 			msg = l.getGroupSchedule(message, "", "", 0)
 		}
 	case TeacherSchedule.String(), TeacherSchedule.Cmd():
@@ -180,7 +180,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 				break
 			}
 			id = message.Text
-			buttons = TeacherSchCode(7).Code(id)
+			buttons = TeacherSchCode(0).Code(id)
 			msg = l.getTeacherSchedule(message, "", "", 0)
 		}
 	case ChangeMyGroup.String(), ChangeMyGroup.Cmd():
@@ -234,7 +234,7 @@ func (l *Logic) SendAnswer(message *tgbotapi.Message) {
 			if err := l.redis.Set(fmt.Sprintf("chat-%d", message.From.ID), ""); err != nil {
 				log.Errorln(err)
 			}
-			buttons = MySchCode(7).Code()
+			buttons = MySchCode(0).Code()
 			group, err := l.storage.SelectGroupID(message.From.ID)
 			if err != nil {
 				if db, err := l.storage.Ping(); err != nil {

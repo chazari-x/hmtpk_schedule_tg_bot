@@ -9,7 +9,7 @@ import (
 type MySchCode int
 
 func (c MySchCode) Code() string {
-	if c > 6 || c < 0 {
+	if c > 7 || c < 1 {
 		return "" + MyScheduleCode
 	}
 	return strconv.Itoa(int(c)) + MyScheduleCode
@@ -18,7 +18,7 @@ func (c MySchCode) Code() string {
 type MySchNextCode int
 
 func (c MySchNextCode) Code() string {
-	if c > 6 || c < 0 {
+	if c > 7 || c < 1 {
 		return "" + MyScheduleNextCode
 	}
 	return strconv.Itoa(int(c)) + MyScheduleNextCode
@@ -27,7 +27,7 @@ func (c MySchNextCode) Code() string {
 type GroupSchCode int
 
 func (c GroupSchCode) Code(group string) string {
-	if c > 6 || c < 0 {
+	if c > 7 || c < 1 {
 		return "" + MyScheduleCode + group
 	}
 	return strconv.Itoa(int(c)) + GroupScheduleCode + group
@@ -36,7 +36,7 @@ func (c GroupSchCode) Code(group string) string {
 type GroupSchNextCode int
 
 func (c GroupSchNextCode) Code(group string) string {
-	if c > 6 || c < 0 {
+	if c > 7 || c < 1 {
 		return "" + GroupScheduleNextCode + group
 	}
 	return strconv.Itoa(int(c)) + GroupScheduleNextCode + group
@@ -45,7 +45,7 @@ func (c GroupSchNextCode) Code(group string) string {
 type TeacherSchCode int
 
 func (c TeacherSchCode) Code(teacher string) string {
-	if c > 6 || c < 0 {
+	if c > 7 || c < 1 {
 		return "" + TeacherScheduleCode + teacher
 	}
 	return strconv.Itoa(int(c)) + TeacherScheduleCode + teacher
@@ -54,7 +54,7 @@ func (c TeacherSchCode) Code(teacher string) string {
 type TeacherSchNextCode int
 
 func (c TeacherSchNextCode) Code(teacher string) string {
-	if c > 6 || c < 0 {
+	if c > 7 || c < 1 {
 		return "" + TeacherScheduleNextCode + teacher
 	}
 	return strconv.Itoa(int(c)) + TeacherScheduleNextCode + teacher
@@ -92,7 +92,7 @@ func (b Button) String() string {
 
 func (b Button) Value() string {
 	switch b {
-	case Button(Start):
+	case Start:
 		return fmt.Sprintf(`Дорогие пользователи,
 
 Мы рады представить вам нашего нового Telegram бота! На данный момент, бот находится в стадии активной разработки, и мы работаем над расширением его функциональности.
@@ -102,7 +102,7 @@ func (b Button) Value() string {
 Используя бот "ХМТПК - РАСПИСАНИЕ", пользователи соглашаются с настоящей политикой использования (%s). Разработчик оставляет за собой право внесения изменений в политику использования без предварительного уведомления.
 
 `, Polity.Cmd())
-	case Button(Home):
+	case Home:
 		return fmt.Sprintf(`Для получения расписания, у вас есть два варианта:
 
 1. Для вашего собственного расписания нажмите кнопку "%s" (%s).
@@ -113,7 +113,7 @@ func (b Button) Value() string {
 
 С наилучшими пожеланиями,
 Команда разработчиков.`, MySchedule, MySchedule.Cmd(), GroupSchedule.Cmd(), TeacherSchedule.Cmd(), OtherSchedule, OtherSchedule.Cmd(), Support.Cmd())
-	case Button(Support):
+	case Support:
 		return `Дорогие пользователи!
 
 Если у вас есть какие-либо вопросы, предложения или вам требуется помощь, наша служба поддержки готова вам помочь. Вы можете связаться с нами по ссылке: <a href="%s">Служба поддержки бота</a>.
@@ -124,31 +124,31 @@ func (b Button) Value() string {
 
 С наилучшими пожеланиями,
 Команда разработчиков.`
-	case Button(MySchedule):
+	case MySchedule:
 		return "-"
-	case Button(Settings):
+	case Settings:
 		return fmt.Sprintf(`Изменение настроек:
 
 1. Изменить мою группу (%s);
 
 Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, ChangeMyGroup.Cmd(), Home.Cmd())
-	case Button(ChangeMyGroup):
+	case ChangeMyGroup:
 		return fmt.Sprintf(`Пожалуйста, выберите или введите полный номер группы.
 
 Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, Home.Cmd())
-	case Button(OtherSchedule):
+	case OtherSchedule:
 		return fmt.Sprintf(`Выберите расписание для группы (%s) или для преподавателя (%s).
 
 Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, GroupSchedule.Cmd(), TeacherSchedule.Cmd(), Home.Cmd())
-	case Button(GroupSchedule):
+	case GroupSchedule:
 		return fmt.Sprintf(`Пожалуйста, выберите или введите полный номер группы.
 
 Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, Home.Cmd())
-	case Button(TeacherSchedule):
+	case TeacherSchedule:
 		return fmt.Sprintf(`Пожалуйста, выберите или введите ФИО преподавателя.
 
 Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, Home.Cmd())
-	case Button(OtherButtons):
+	case OtherButtons:
 		return fmt.Sprintf(`Показаны остальные кнопки:
 
 1. Политика использования (%s);
@@ -160,9 +160,9 @@ func (b Button) Value() string {
 4. Статистика (%s).
 
 Для возврата на главную страницу нажмите кнопку "Перейти в главное меню" (%s).`, Polity.Cmd(), Support.Cmd(), Settings.Cmd(), Statistics.Cmd(), Home.Cmd())
-	case Button(Statistics):
+	case Statistics:
 		return "Статистика использования бота:\n\nза день: %d пользователя\n\nза месяц: %d пользователя"
-	case Button(Polity):
+	case Polity:
 		return `<b>Политика использования бота "ХМТПК - РАСПИСАНИЕ"</b>
 
 <b>Последнее обновление:</b> 04.11.2023
@@ -189,27 +189,27 @@ func (b Button) Value() string {
 
 func (b Button) Cmd() string {
 	switch b {
-	case Button(Home):
+	case Home:
 		return "/home"
-	case Button(Support):
+	case Support:
 		return "/support"
-	case Button(MySchedule):
+	case MySchedule:
 		return "/myschedule"
-	case Button(Settings):
+	case Settings:
 		return "/settings"
-	case Button(ChangeMyGroup):
+	case ChangeMyGroup:
 		return "/changemygroup"
-	case Button(OtherSchedule):
+	case OtherSchedule:
 		return "/otherschedule"
-	case Button(GroupSchedule):
+	case GroupSchedule:
 		return "/group"
-	case Button(TeacherSchedule):
+	case TeacherSchedule:
 		return "/teacher"
-	case Button(OtherButtons):
+	case OtherButtons:
 		return "/other"
-	case Button(Statistics):
+	case Statistics:
 		return "/status"
-	case Button(Polity):
+	case Polity:
 		return "/polity"
 	default:
 		return "-"
@@ -232,10 +232,10 @@ func (d Weekday) String() string {
 		return "Пятница"
 	case 6:
 		return "Суббота"
-	case 0:
+	case 7:
 		return "Воскресенье"
 	default:
-		return Weekday(time.Now().Weekday()).String()
+		return Weekday(NowWeekday()).String()
 	}
 }
 
@@ -253,9 +253,18 @@ func (d Weekday) ShortString() string {
 		return "ПТ"
 	case 6:
 		return "СБ"
-	case 0:
+	case 7:
 		return "ВС"
 	default:
-		return Weekday(time.Now().Weekday()).ShortString()
+		return Weekday(NowWeekday()).ShortString()
 	}
+}
+
+func NowWeekday() int {
+	a := time.Now().Weekday()
+	if a == 0 {
+		a = 7
+	}
+
+	return int(a)
 }
