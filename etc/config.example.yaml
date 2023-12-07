@@ -2,7 +2,7 @@ log:
   dev: false
   level: "trace"
 
-bot:
+telegram:
   token: "token"
   support:
     id: 0

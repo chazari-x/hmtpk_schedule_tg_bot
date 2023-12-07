@@ -12,7 +12,7 @@ import (
 var configFile = "etc/config.yaml"
 
 type Config struct {
-	Telegram config.Telegram `yaml:"bot"`
+	Telegram config.Telegram `yaml:"telegram"`
 	Redis    config.Redis    `yaml:"redis"`
 	DB       config.DataBase `yaml:"db"`
 	Schedule config.Schedule `yaml:"schedule"`

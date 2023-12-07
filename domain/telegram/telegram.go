@@ -25,7 +25,6 @@ func Start(cfg *config.Telegram, redis *redis.Redis, schedule *schedule.Schedule
 
 	updates, err := bot.GetUpdatesChan(updateConfig)
 	if err != nil {
-		log.Error(err)
 		return err
 	}
 

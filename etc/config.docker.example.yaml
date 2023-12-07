@@ -2,7 +2,7 @@ log:
   dev: false
   level: "error"
 
-bot:
+telegram:
   token: "token"
   support:
     id: 0
@@ -14,7 +14,7 @@ redis:
   password: "qwe908poi123"
 
 db:
-  host: "0.0.0.0"
+  host: "postgres"
   port: "5432"
   user: "postgres"
   pass: "postgrespw"
